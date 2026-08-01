@@ -1,0 +1,122 @@
+{
+  "_note": "MANIFEST dieu khien CA giao dien web LAN validate_contract.py. Them loai truy van gian lan moi = them 1 muc o query_types + 1 script, KHONG phai sua React. Moi 'requires'/'optional' phai la id co trong CHECKS cua validate_contract.py.",
+
+  "query_types": [
+    {
+      "id": "circular_trading",
+      "name": "Mua bán lòng vòng (Circular Trading)",
+      "description": "Tìm các vòng giao dịch khép kín A→B→C→A trong hóa đơn GTGT, chấm điểm rủi ro 0-100 theo 5 tín hiệu (cân bằng giá trị, nén thời gian, liên kết ngầm, thành viên rủi ro, bất thường VAT).",
+      "status": "available",
+      "script": "detect_circular_trading.py",
+      "params": [
+        { "id": "period_from", "label": "Kỳ từ (yyyymm)", "type": "int", "default": 202011 },
+        { "id": "period_to", "label": "Kỳ đến (yyyymm)", "type": "int", "default": 202112 },
+        {
+          "id": "max_hops", "label": "Số chặng tối đa", "type": "select",
+          "options": [3, 4, 5], "default": 5,
+          "hint": "Đo thật trên 98 công ty: 3 chặng ~3 giây · 5 chặng ~16 giây. Dữ liệu càng dày thì tăng chặng càng đắt."
+        },
+        {
+          "id": "method", "label": "Phương pháp dò", "type": "select",
+          "options": ["dfs", "match"], "default": "dfs",
+          "hint": "dfs = duyệt trong ứng dụng, quét đầy đủ, không bị cắt cụt · match = truy vấn thuần Nebula, có giới hạn kết quả/seed"
+        }
+      ],
+      "requires": ["4.1.tag_company", "4.1.edge_trades", "4.1.rank_period"],
+      "optional": ["4.1.index", "4.2.legal_rep", "4.2.owns", "4.2.shares_address", "4.2.status_date"]
+    },
+    {
+      "id": "shell_company",
+      "name": "Doanh nghiệp ma / hóa đơn khống",
+      "description": "Phát hiện doanh nghiệp mới thành lập xuất hóa đơn giá trị lớn rồi ngừng hoạt động.",
+      "status": "coming_soon"
+    },
+    {
+      "id": "shared_identity",
+      "name": "Trùng định danh (CCCD / SĐT / địa chỉ)",
+      "description": "Nhóm doanh nghiệp dùng chung số điện thoại, email, kế toán hoặc địa chỉ đăng ký.",
+      "status": "coming_soon"
+    },
+    {
+      "id": "price_anomaly",
+      "name": "Bất thường đơn giá (Lớp 3)",
+      "description": "So sánh đơn giá từng mặt hàng với trung vị cùng ngành cùng kỳ.",
+      "status": "coming_soon"
+    }
+  ],
+
+  "datasources": [
+    {
+      "id": "local_existing",
+      "name": "Dùng dữ liệu có sẵn trong detecting_cheat_by_nebula/raw",
+      "description": "Chạy lại trên bộ 98 công ty Hà Nội / 8.976 hóa đơn đã có sẵn trên máy. Không cần tải file lên.",
+      "status": "available",
+      "script": "ingest_csv86.py",
+      "inputs": []
+    },
+    {
+      "id": "csv86",
+      "name": "Tải lên cặp CSV chuẩn (company.csv + invoice.csv)",
+      "description": "Định dạng giống bộ detecting_cheat_by_nebula. Cả hai file đều KHÔNG có dòng tiêu đề.",
+      "status": "available",
+      "script": "ingest_csv86.py",
+      "inputs": [
+        {
+          "field": "company_csv",
+          "name": "company.csv",
+          "required": true,
+          "columns": [
+            { "pos": 1, "name": "mst", "desc": "Mã số thuế — dùng làm khóa đỉnh (VID), tối đa 16 ký tự" },
+            { "pos": 2, "name": "ten_cong_ty", "desc": "Tên đầy đủ doanh nghiệp" },
+            { "pos": 3, "name": "linh_vuc", "desc": "Ngành nghề kinh doanh" },
+            { "pos": 4, "name": "dia_chi", "desc": "Địa chỉ đăng ký — dùng suy liên kết 'chung địa chỉ'" },
+            { "pos": 5, "name": "doanh_thu", "desc": "Doanh thu báo cáo (số nguyên, để trống = 0)" },
+            { "pos": 6, "name": "nam_bao_cao", "desc": "Kỳ báo cáo tài chính" }
+          ],
+          "notes": [
+            "KHÔNG có dòng tiêu đề (header)",
+            "Địa chỉ chứa dấu phẩy phải bọc trong dấu ngoặc kép"
+          ]
+        },
+        {
+          "field": "invoice_csv",
+          "name": "invoice.csv",
+          "required": true,
+          "columns": [
+            { "pos": 1, "name": "so_hoa_don", "desc": "Số hóa đơn — CHỈ để hiển thị, KHÔNG duy nhất toàn cục" },
+            { "pos": 2, "name": "ngay_xuat", "desc": "Ngày xuất, dạng yyyy-mm-dd — dùng suy kỳ kê khai (yyyymm)" },
+            { "pos": 3, "name": "mst_nguon", "desc": "MST bên BÁN (chiều mũi tên đi ra)" },
+            { "pos": 4, "name": "mst_dich", "desc": "MST bên MUA (chiều mũi tên đi vào)" },
+            { "pos": 5, "name": "mo_ta", "desc": "Nội dung hàng hóa / dịch vụ" },
+            { "pos": 6, "name": "tien_chua_thue", "desc": "Tiền trước thuế (số nguyên)" },
+            { "pos": 7, "name": "thue_gtgt", "desc": "Tiền thuế GTGT (số nguyên)" }
+          ],
+          "notes": [
+            "KHÔNG có dòng tiêu đề (header)",
+            "Chỉ 7 cột đầu được đọc — nếu file có thêm cột phía sau (ví dụ loại giao dịch, nhãn cảnh báo có sẵn, số thứ tự nội bộ) vẫn nạp được bình thường, các cột thừa sẽ bị bỏ qua",
+            "Dòng có mst_nguon == mst_dich (tự bán cho mình) sẽ bị loại tự động",
+            "Nhiều hóa đơn cùng cặp bán-mua trong cùng tháng sẽ được GỘP thành 1 cạnh"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "xlsx_nhomacd",
+      "name": "Bộ xlsx bàn giao NhómACD (HDBan / HDMua / HDBanMTT / HDMuaMTT)",
+      "description": "11.444 file / 8,7GB / 3.819-3.913 MST, hóa đơn điện tử cấp dòng 01/2023-12/2025. Xem full_invoice_86/DATA_CONTRACT_BANGIAO_NHOMACD.md.",
+      "status": "planned",
+      "script": "ingest_xlsx_nhomacd.py",
+      "inputs": [],
+      "blocked_by": "Chưa xử lý 12 vấn đề chất lượng dữ liệu đã ghi nhận trong biên bản bàn giao; kích thước lớn nên phải đọc từ đường dẫn đĩa, không tải lên qua HTTP."
+    },
+    {
+      "id": "trino_gotix",
+      "name": "Kết nối Trino / Gotix lakehouse",
+      "description": "Đọc trực tiếp từ mart hóa đơn B2B trong data lakehouse thay vì file CSV.",
+      "status": "planned",
+      "script": "ingest_trino_gotix.py",
+      "inputs": [],
+      "blocked_by": "Domain einvoice trong Gotix hiện vẫn là scaffold rỗng (DDL 0 byte, DAG là EmptyOperator). Xem detecting_cheat_by_nebula/nebula_in_gotix.md."
+    }
+  ]
+}

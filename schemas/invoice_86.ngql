@@ -1,0 +1,58 @@
+-- Schema space cho pipeline phat hien mua ban long vong tren du lieu THAT detecting_cheat_by_nebula
+-- (98 cong ty Ha Noi / 8.976 hoa don). Ap dung dung nguyen tac gop canh cua tax_graph
+-- (1 canh = 1 cap ban-mua trong 1 ky, rank = yyyymm), KHONG PHAI 1 hoa don = 1 canh.
+--
+-- Ten space lay tu bien moi truong SPACE (mac dinh `invoice_agg_graph`) — file nay
+-- chi la KHUON, load_schema.py se thay {{SPACE}} truoc khi chay.
+--
+-- KHAC BIET SO VOI tax_graph: KHONG co Tag Person, KHONG co Edge LEGAL_REP_OF/OWNS
+-- vi detecting_cheat_by_nebula khong he co du lieu nguoi dai dien phap luat / so huu von. Hau qua
+-- truc tiep len diem so: mat 25 diem (lien ket ngam) + 15 diem (DN moi/bo tron)
+-- => TRAN DIEM cua bo du lieu nay la 60/100, khong phai 100/100.
+-- Xem full_invoice_86/KE_HOACH_TONG_THE_PIPELINE_LONG_VONG.md muc 4.2.
+
+CREATE SPACE IF NOT EXISTS {{SPACE}} (
+  partition_num  = 10,          -- quy mo nho (98 dinh), khong can 60 nhu tax_graph
+  replica_factor = 1,
+  vid_type       = FIXED_STRING(16)   -- MST toi da 14 ky tu
+);
+
+USE {{SPACE}};
+
+CREATE TAG IF NOT EXISTS Company (
+  name        string,
+  sector      string,   -- linh vuc / nganh nghe
+  address     string,   -- dia chi dang ky — nguon suy SHARES_ADDRESS
+  revenue     double,   -- doanh thu bao cao
+  report_date string     -- giu string vi du lieu goc dang dd/mm/yyyy
+);
+
+-- Canh giao dich GOP THEO KY. rank = period = yyyymm.
+-- Vi sao rank = period: 2 cong ty co the giao dich nhieu thang -> nhieu canh song
+-- song, phai co rank phan biet. Dung period lam rank vua tao khoa idempotent (nap
+-- lai cung ky = ghi de, khong nhan doi), vua cho phep loc `rank(e) >= x AND <= y`
+-- ngay trong nGQL ma khong can doc thuoc tinh.
+CREATE EDGE IF NOT EXISTS TRADES (
+  period        int,
+  invoice_count int,
+  total_amount  double,
+  total_vat     double,
+  first_date    string,
+  last_date     string
+);
+
+-- Lien ket ngam DUY NHAT suy duoc tu detecting_cheat_by_nebula (2 cong ty cung dia chi dang ky).
+-- Tren bo 98 cong ty nay thuc te ra 0 canh — giu edge type de validate_contract.py
+-- phan biet duoc "khong co cau truc" (missing) voi "co cau truc, khong co du lieu"
+-- (empty). Hai truong hop nay can hanh dong khac nhau.
+CREATE EDGE IF NOT EXISTS SHARES_ADDRESS (norm_addr string);
+
+CREATE EDGE INDEX IF NOT EXISTS idx_trades_period ON TRADES(period);
+
+-- Index RONG (khong index thuoc tinh nao) — CHI de kich hoat LOOKUP ON Company
+-- cho man hinh "xem truoc" (buoc 1, bang Doanh nghiep). KHONG co index nay,
+-- LOOKUP se bao loi, va API preview phai quay ve MATCH (x:Company) RETURN ...
+-- SKIP n LIMIT m — buoc Nebula quet toan bo tag KHONG dung index truoc khi cat
+-- lay vai chuc dong, tung lam graphd bi OOM-kill tren bo 515K dinh (IBM AML
+-- HI-Small). LOOKUP + pipe LIMIT day duoc gioi han xuong tang luu tru that.
+CREATE TAG INDEX IF NOT EXISTS idx_company ON Company();

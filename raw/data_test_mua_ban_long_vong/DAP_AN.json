@@ -1,0 +1,1056 @@
+{
+  "tao_luc": "2026-08-01T21:10:13.141148",
+  "seed_ngau_nhien": 42,
+  "tong_so_doanh_nghiep": 250,
+  "tong_so_hoa_don": 7362,
+  "chuoi_gian_lan": [
+    {
+      "id": "F01",
+      "loai": "ro_rang_3_chang",
+      "thanh_vien": [
+        "9900000001",
+        "9900000002",
+        "9900000003"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000001",
+          "mua": "9900000002",
+          "ky": "2023-05",
+          "tien_truoc_thue": 5000000000,
+          "thue_gtgt": 500000000
+        },
+        {
+          "ban": "9900000002",
+          "mua": "9900000003",
+          "ky": "2023-05",
+          "tien_truoc_thue": 4900000000,
+          "thue_gtgt": 490000000
+        },
+        {
+          "ban": "9900000003",
+          "mua": "9900000001",
+          "ky": "2023-05",
+          "tien_truoc_thue": 4950000000,
+          "thue_gtgt": 495000000
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 30.0,
+        "nen_thoi_gian": 20.0,
+        "vat": 0.0,
+        "lien_ket_ngam": 25.0,
+        "tong": 75.0
+      },
+      "muc_ky_vong": "co_do"
+    },
+    {
+      "id": "F02",
+      "loai": "ro_rang_3_chang",
+      "thanh_vien": [
+        "9900000004",
+        "9900000005",
+        "9900000006"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000004",
+          "mua": "9900000005",
+          "ky": "2023-06",
+          "tien_truoc_thue": 2000000000,
+          "thue_gtgt": 200000000
+        },
+        {
+          "ban": "9900000005",
+          "mua": "9900000006",
+          "ky": "2023-06",
+          "tien_truoc_thue": 1980000000,
+          "thue_gtgt": 198000000
+        },
+        {
+          "ban": "9900000006",
+          "mua": "9900000004",
+          "ky": "2023-06",
+          "tien_truoc_thue": 1960000000,
+          "thue_gtgt": 196000000
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 30.0,
+        "nen_thoi_gian": 20.0,
+        "vat": 0.0,
+        "lien_ket_ngam": 25.0,
+        "tong": 75.0
+      },
+      "muc_ky_vong": "co_do"
+    },
+    {
+      "id": "F03",
+      "loai": "ro_rang_3_chang",
+      "thanh_vien": [
+        "9900000007",
+        "9900000008",
+        "9900000009"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000007",
+          "mua": "9900000008",
+          "ky": "2023-07",
+          "tien_truoc_thue": 10000000000,
+          "thue_gtgt": 1000000000
+        },
+        {
+          "ban": "9900000008",
+          "mua": "9900000009",
+          "ky": "2023-07",
+          "tien_truoc_thue": 9700000000,
+          "thue_gtgt": 970000000
+        },
+        {
+          "ban": "9900000009",
+          "mua": "9900000007",
+          "ky": "2023-07",
+          "tien_truoc_thue": 9850000000,
+          "thue_gtgt": 985000000
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 30.0,
+        "nen_thoi_gian": 20.0,
+        "vat": 0.0,
+        "lien_ket_ngam": 0.0,
+        "tong": 50.0
+      },
+      "muc_ky_vong": "theo_doi"
+    },
+    {
+      "id": "F04",
+      "loai": "ro_rang_3_chang",
+      "thanh_vien": [
+        "9900000010",
+        "9900000011",
+        "9900000012"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000010",
+          "mua": "9900000011",
+          "ky": "2023-08",
+          "tien_truoc_thue": 3500000000,
+          "thue_gtgt": 350000000
+        },
+        {
+          "ban": "9900000011",
+          "mua": "9900000012",
+          "ky": "2023-08",
+          "tien_truoc_thue": 3447500000,
+          "thue_gtgt": 344750000
+        },
+        {
+          "ban": "9900000012",
+          "mua": "9900000010",
+          "ky": "2023-08",
+          "tien_truoc_thue": 3465000000,
+          "thue_gtgt": 346500000
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 30.0,
+        "nen_thoi_gian": 20.0,
+        "vat": 0.0,
+        "lien_ket_ngam": 0.0,
+        "tong": 50.0
+      },
+      "muc_ky_vong": "theo_doi"
+    },
+    {
+      "id": "F05",
+      "loai": "ro_rang_3_chang",
+      "thanh_vien": [
+        "9900000013",
+        "9900000014",
+        "9900000015"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000013",
+          "mua": "9900000014",
+          "ky": "2023-09",
+          "tien_truoc_thue": 1200000000,
+          "thue_gtgt": 120000000
+        },
+        {
+          "ban": "9900000014",
+          "mua": "9900000015",
+          "ky": "2023-09",
+          "tien_truoc_thue": 1176000000,
+          "thue_gtgt": 117600000
+        },
+        {
+          "ban": "9900000015",
+          "mua": "9900000013",
+          "ky": "2023-09",
+          "tien_truoc_thue": 1188000000,
+          "thue_gtgt": 118800000
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 30.0,
+        "nen_thoi_gian": 20.0,
+        "vat": 0.0,
+        "lien_ket_ngam": 25.0,
+        "tong": 75.0
+      },
+      "muc_ky_vong": "co_do"
+    },
+    {
+      "id": "F06",
+      "loai": "ro_rang_dai",
+      "thanh_vien": [
+        "9900000016",
+        "9900000017",
+        "9900000018",
+        "9900000019"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000016",
+          "mua": "9900000017",
+          "ky": "2023-04",
+          "tien_truoc_thue": 8000000000,
+          "thue_gtgt": 800000000
+        },
+        {
+          "ban": "9900000017",
+          "mua": "9900000018",
+          "ky": "2023-04",
+          "tien_truoc_thue": 7896000000,
+          "thue_gtgt": 789600000
+        },
+        {
+          "ban": "9900000018",
+          "mua": "9900000019",
+          "ky": "2023-04",
+          "tien_truoc_thue": 7848000000,
+          "thue_gtgt": 784800000
+        },
+        {
+          "ban": "9900000019",
+          "mua": "9900000016",
+          "ky": "2023-04",
+          "tien_truoc_thue": 7944000000,
+          "thue_gtgt": 794400000
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 30.0,
+        "nen_thoi_gian": 20.0,
+        "vat": 0.0,
+        "lien_ket_ngam": 0.0,
+        "tong": 50.0
+      },
+      "muc_ky_vong": "theo_doi"
+    },
+    {
+      "id": "F07",
+      "loai": "ro_rang_dai",
+      "thanh_vien": [
+        "9900000020",
+        "9900000021",
+        "9900000022",
+        "9900000023"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000020",
+          "mua": "9900000021",
+          "ky": "2023-05",
+          "tien_truoc_thue": 4000000000,
+          "thue_gtgt": 400000000
+        },
+        {
+          "ban": "9900000021",
+          "mua": "9900000022",
+          "ky": "2023-05",
+          "tien_truoc_thue": 3948000000,
+          "thue_gtgt": 394800000
+        },
+        {
+          "ban": "9900000022",
+          "mua": "9900000023",
+          "ky": "2023-05",
+          "tien_truoc_thue": 3920000000,
+          "thue_gtgt": 392000000
+        },
+        {
+          "ban": "9900000023",
+          "mua": "9900000020",
+          "ky": "2023-05",
+          "tien_truoc_thue": 3980000000,
+          "thue_gtgt": 398000000
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 30.0,
+        "nen_thoi_gian": 20.0,
+        "vat": 0.0,
+        "lien_ket_ngam": 0.0,
+        "tong": 50.0
+      },
+      "muc_ky_vong": "theo_doi"
+    },
+    {
+      "id": "F08",
+      "loai": "ro_rang_dai",
+      "thanh_vien": [
+        "9900000024",
+        "9900000025",
+        "9900000026",
+        "9900000027",
+        "9900000028"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000024",
+          "mua": "9900000025",
+          "ky": "2023-06",
+          "tien_truoc_thue": 6000000000,
+          "thue_gtgt": 600000000
+        },
+        {
+          "ban": "9900000025",
+          "mua": "9900000026",
+          "ky": "2023-06",
+          "tien_truoc_thue": 5946000000,
+          "thue_gtgt": 594600000
+        },
+        {
+          "ban": "9900000026",
+          "mua": "9900000027",
+          "ky": "2023-06",
+          "tien_truoc_thue": 5898000000,
+          "thue_gtgt": 589800000
+        },
+        {
+          "ban": "9900000027",
+          "mua": "9900000028",
+          "ky": "2023-06",
+          "tien_truoc_thue": 5880000000,
+          "thue_gtgt": 588000000
+        },
+        {
+          "ban": "9900000028",
+          "mua": "9900000024",
+          "ky": "2023-06",
+          "tien_truoc_thue": 5916000000,
+          "thue_gtgt": 591600000
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 30.0,
+        "nen_thoi_gian": 20.0,
+        "vat": 0.0,
+        "lien_ket_ngam": 0.0,
+        "tong": 50.0
+      },
+      "muc_ky_vong": "theo_doi"
+    },
+    {
+      "id": "F09",
+      "loai": "ro_rang_dai",
+      "thanh_vien": [
+        "9900000029",
+        "9900000030",
+        "9900000031",
+        "9900000032",
+        "9900000033"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000029",
+          "mua": "9900000030",
+          "ky": "2023-07",
+          "tien_truoc_thue": 15000000000,
+          "thue_gtgt": 1500000000
+        },
+        {
+          "ban": "9900000030",
+          "mua": "9900000031",
+          "ky": "2023-07",
+          "tien_truoc_thue": 14895000000,
+          "thue_gtgt": 1489500000
+        },
+        {
+          "ban": "9900000031",
+          "mua": "9900000032",
+          "ky": "2023-07",
+          "tien_truoc_thue": 14850000000,
+          "thue_gtgt": 1485000000
+        },
+        {
+          "ban": "9900000032",
+          "mua": "9900000033",
+          "ky": "2023-07",
+          "tien_truoc_thue": 14790000000,
+          "thue_gtgt": 1479000000
+        },
+        {
+          "ban": "9900000033",
+          "mua": "9900000029",
+          "ky": "2023-07",
+          "tien_truoc_thue": 14940000000,
+          "thue_gtgt": 1494000000
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 30.0,
+        "nen_thoi_gian": 20.0,
+        "vat": 0.0,
+        "lien_ket_ngam": 0.0,
+        "tong": 50.0
+      },
+      "muc_ky_vong": "theo_doi"
+    },
+    {
+      "id": "F10",
+      "loai": "bien",
+      "thanh_vien": [
+        "9900000034",
+        "9900000035",
+        "9900000036"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000034",
+          "mua": "9900000035",
+          "ky": "2023-03",
+          "tien_truoc_thue": 5000000000,
+          "thue_gtgt": 500000000
+        },
+        {
+          "ban": "9900000035",
+          "mua": "9900000036",
+          "ky": "2023-03",
+          "tien_truoc_thue": 3000000000,
+          "thue_gtgt": 300000000
+        },
+        {
+          "ban": "9900000036",
+          "mua": "9900000034",
+          "ky": "2023-04",
+          "tien_truoc_thue": 2700000000,
+          "thue_gtgt": 270000000
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 14.4,
+        "nen_thoi_gian": 20.0,
+        "vat": 0.0,
+        "lien_ket_ngam": 0.0,
+        "tong": 34.4
+      },
+      "muc_ky_vong": "bo_qua",
+      "_da_sua_02_08_2026": "Ban goc ghi nen_thoi_gian=10.0 (SAI — cong thuc dung: span=1 thang <=1 => du 20d, khong tru) va lien_ket_ngam=25.0 (SAI — 3 MST cua chuoi nay KHONG trung dia chi trong company.csv, da kiem tra tay: Ha Dong / Bac Tu Liem / Giai Phong, 3 dia chi khac nhau hoan toan). Diem thuc te he thong tra ve la 34.4 (report.ndjson dong 15), khop dung cong thuc that. Xem BAO_CAO_THU_NGHIEM_DANH_GIA.md muc 5.3."
+    },
+    {
+      "id": "F11",
+      "loai": "bien",
+      "thanh_vien": [
+        "9900000037",
+        "9900000038",
+        "9900000039"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000037",
+          "mua": "9900000038",
+          "ky": "2023-05",
+          "tien_truoc_thue": 4000000000,
+          "thue_gtgt": 400000000
+        },
+        {
+          "ban": "9900000038",
+          "mua": "9900000039",
+          "ky": "2023-05",
+          "tien_truoc_thue": 2400000000,
+          "thue_gtgt": 240000000
+        },
+        {
+          "ban": "9900000039",
+          "mua": "9900000037",
+          "ky": "2023-06",
+          "tien_truoc_thue": 2300000000,
+          "thue_gtgt": 230000000
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 16.5,
+        "nen_thoi_gian": 20.0,
+        "vat": 0.0,
+        "lien_ket_ngam": 0.0,
+        "tong": 36.5
+      },
+      "muc_ky_vong": "bo_qua",
+      "_da_sua_02_08_2026": "Ban goc ghi nen_thoi_gian=10.0 (SAI — cong thuc dung: span=1 thang <=1 => du 20d) va lien_ket_ngam=25.0 (SAI — 3 MST cua chuoi nay KHONG trung dia chi trong company.csv, da kiem tra tay: Giai Phong / Nguyen Trai / Le Duan, 3 dia chi khac nhau; luu y MST 9900000037 vo tinh trung dia chi voi MST 9900000036 cua chuoi F10 KHAC — khong co tac dung vi khong cung 1 vong). Diem thuc te he thong tra ve la 36.5 (report.ndjson dong 14), khop dung cong thuc that. Xem BAO_CAO_THU_NGHIEM_DANH_GIA.md muc 5.3."
+    },
+    {
+      "id": "F12",
+      "loai": "bien",
+      "thanh_vien": [
+        "9900000040",
+        "9900000041",
+        "9900000042",
+        "9900000043"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000040",
+          "mua": "9900000041",
+          "ky": "2023-02",
+          "tien_truoc_thue": 6000000000,
+          "thue_gtgt": 600000000
+        },
+        {
+          "ban": "9900000041",
+          "mua": "9900000042",
+          "ky": "2023-03",
+          "tien_truoc_thue": 3600000000,
+          "thue_gtgt": 360000000
+        },
+        {
+          "ban": "9900000042",
+          "mua": "9900000043",
+          "ky": "2023-03",
+          "tien_truoc_thue": 3300000000,
+          "thue_gtgt": 330000000
+        },
+        {
+          "ban": "9900000043",
+          "mua": "9900000040",
+          "ky": "2023-04",
+          "tien_truoc_thue": 3900000000,
+          "thue_gtgt": 390000000
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 15.0,
+        "nen_thoi_gian": 10.0,
+        "vat": 0.0,
+        "lien_ket_ngam": 0.0,
+        "tong": 25.0
+      },
+      "muc_ky_vong": "bo_qua",
+      "_da_sua_02_08_2026": "Ban goc ghi nen_thoi_gian=5.0 (SAI — cong thuc dung: span=2 thang (02->04) => 20-2*5=10). Diem thuc te he thong tra ve la 25.0 (report.ndjson dong 16), khop dung cong thuc that. Muc phan loai khong doi (van bo_qua vi <40). Xem BAO_CAO_THU_NGHIEM_DANH_GIA.md muc 5.3."
+    },
+    {
+      "id": "F13",
+      "loai": "bien",
+      "thanh_vien": [
+        "9900000044",
+        "9900000045",
+        "9900000046",
+        "9900000047"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000044",
+          "mua": "9900000045",
+          "ky": "2023-07",
+          "tien_truoc_thue": 10000000000,
+          "thue_gtgt": 1000000000
+        },
+        {
+          "ban": "9900000045",
+          "mua": "9900000046",
+          "ky": "2023-07",
+          "tien_truoc_thue": 6500000000,
+          "thue_gtgt": 650000000
+        },
+        {
+          "ban": "9900000046",
+          "mua": "9900000047",
+          "ky": "2023-08",
+          "tien_truoc_thue": 6200000000,
+          "thue_gtgt": 620000000
+        },
+        {
+          "ban": "9900000047",
+          "mua": "9900000044",
+          "ky": "2023-08",
+          "tien_truoc_thue": 6800000000,
+          "thue_gtgt": 680000000
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 19.2,
+        "nen_thoi_gian": 20.0,
+        "vat": 0.0,
+        "lien_ket_ngam": 0.0,
+        "tong": 39.2
+      },
+      "muc_ky_vong": "bo_qua",
+      "_da_sua_02_08_2026": "Ban goc ghi nen_thoi_gian=10.0 (SAI — cong thuc dung: span=1 thang (07->08) <=1 => du 20d). Diem thuc te he thong tra ve la 39.2 (report.ndjson dong 13), khop dung cong thuc that. LUU Y: 39.2 rat sat nguong 40 (theo_doi) — day la truong hop bien, chi con cach nguong 0,8 diem."
+    },
+    {
+      "id": "F14",
+      "loai": "vat_bat_thuong",
+      "thanh_vien": [
+        "9900000048",
+        "9900000049",
+        "9900000050"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000048",
+          "mua": "9900000049",
+          "ky": "2023-05",
+          "tien_truoc_thue": 5000000000,
+          "thue_gtgt": 500000000
+        },
+        {
+          "ban": "9900000049",
+          "mua": "9900000050",
+          "ky": "2023-05",
+          "tien_truoc_thue": 4950000000,
+          "thue_gtgt": 495000000
+        },
+        {
+          "ban": "9900000050",
+          "mua": "9900000048",
+          "ky": "2023-05",
+          "tien_truoc_thue": 4900000000,
+          "thue_gtgt": 0
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 30.0,
+        "nen_thoi_gian": 20.0,
+        "vat": 10.0,
+        "lien_ket_ngam": 0.0,
+        "tong": 60.0
+      },
+      "muc_ky_vong": "co_do"
+    },
+    {
+      "id": "F15",
+      "loai": "vat_bat_thuong",
+      "thanh_vien": [
+        "9900000051",
+        "9900000052",
+        "9900000053"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000051",
+          "mua": "9900000052",
+          "ky": "2023-06",
+          "tien_truoc_thue": 8000000000,
+          "thue_gtgt": 800000000
+        },
+        {
+          "ban": "9900000052",
+          "mua": "9900000053",
+          "ky": "2023-06",
+          "tien_truoc_thue": 7896000000,
+          "thue_gtgt": 789600000
+        },
+        {
+          "ban": "9900000053",
+          "mua": "9900000051",
+          "ky": "2023-06",
+          "tien_truoc_thue": 7952000000,
+          "thue_gtgt": 397600000
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 30.0,
+        "nen_thoi_gian": 20.0,
+        "vat": 10.0,
+        "lien_ket_ngam": 0.0,
+        "tong": 60.0
+      },
+      "muc_ky_vong": "co_do"
+    },
+    {
+      "id": "F16",
+      "loai": "vat_bat_thuong",
+      "thanh_vien": [
+        "9900000054",
+        "9900000055",
+        "9900000056",
+        "9900000057"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000054",
+          "mua": "9900000055",
+          "ky": "2023-07",
+          "tien_truoc_thue": 6000000000,
+          "thue_gtgt": 600000000
+        },
+        {
+          "ban": "9900000055",
+          "mua": "9900000056",
+          "ky": "2023-07",
+          "tien_truoc_thue": 5946000000,
+          "thue_gtgt": 594600000
+        },
+        {
+          "ban": "9900000056",
+          "mua": "9900000057",
+          "ky": "2023-07",
+          "tien_truoc_thue": 5898000000,
+          "thue_gtgt": 589800000
+        },
+        {
+          "ban": "9900000057",
+          "mua": "9900000054",
+          "ky": "2023-07",
+          "tien_truoc_thue": 5916000000,
+          "thue_gtgt": 0
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 30.0,
+        "nen_thoi_gian": 20.0,
+        "vat": 10.0,
+        "lien_ket_ngam": 0.0,
+        "tong": 60.0
+      },
+      "muc_ky_vong": "co_do"
+    },
+    {
+      "id": "F17",
+      "loai": "gan_nhu_khong_phai",
+      "thanh_vien": [
+        "9900000058",
+        "9900000059",
+        "9900000060"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000058",
+          "mua": "9900000059",
+          "ky": "2023-01",
+          "tien_truoc_thue": 10000000000,
+          "thue_gtgt": 1000000000
+        },
+        {
+          "ban": "9900000059",
+          "mua": "9900000060",
+          "ky": "2023-02",
+          "tien_truoc_thue": 2000000000,
+          "thue_gtgt": 200000000
+        },
+        {
+          "ban": "9900000060",
+          "mua": "9900000058",
+          "ky": "2023-04",
+          "tien_truoc_thue": 1500000000,
+          "thue_gtgt": 150000000
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 0.0,
+        "nen_thoi_gian": 0.0,
+        "vat": 0.0,
+        "lien_ket_ngam": 0.0,
+        "tong": 0.0
+      },
+      "muc_ky_vong": "bo_qua"
+    },
+    {
+      "id": "F18",
+      "loai": "gan_nhu_khong_phai",
+      "thanh_vien": [
+        "9900000061",
+        "9900000062",
+        "9900000063"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000061",
+          "mua": "9900000062",
+          "ky": "2023-02",
+          "tien_truoc_thue": 8000000000,
+          "thue_gtgt": 800000000
+        },
+        {
+          "ban": "9900000062",
+          "mua": "9900000063",
+          "ky": "2023-04",
+          "tien_truoc_thue": 1600000000,
+          "thue_gtgt": 160000000
+        },
+        {
+          "ban": "9900000063",
+          "mua": "9900000061",
+          "ky": "2023-06",
+          "tien_truoc_thue": 1200000000,
+          "thue_gtgt": 120000000
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 0.0,
+        "nen_thoi_gian": 0.0,
+        "vat": 0.0,
+        "lien_ket_ngam": 0.0,
+        "tong": 0.0
+      },
+      "muc_ky_vong": "bo_qua"
+    },
+    {
+      "id": "F19",
+      "loai": "gan_nhu_khong_phai",
+      "thanh_vien": [
+        "9900000064",
+        "9900000065",
+        "9900000066",
+        "9900000067"
+      ],
+      "ghi_chu_thu_tu": "dung THU TU chieu ban: phan tu 0 ban cho phan tu 1, ... cuoi cung ban nguoc lai phan tu 0",
+      "cac_canh": [
+        {
+          "ban": "9900000064",
+          "mua": "9900000065",
+          "ky": "2023-03",
+          "tien_truoc_thue": 15000000000,
+          "thue_gtgt": 1500000000
+        },
+        {
+          "ban": "9900000065",
+          "mua": "9900000066",
+          "ky": "2023-04",
+          "tien_truoc_thue": 3000000000,
+          "thue_gtgt": 300000000
+        },
+        {
+          "ban": "9900000066",
+          "mua": "9900000067",
+          "ky": "2023-05",
+          "tien_truoc_thue": 2490000000,
+          "thue_gtgt": 249000000
+        },
+        {
+          "ban": "9900000067",
+          "mua": "9900000064",
+          "ky": "2023-06",
+          "tien_truoc_thue": 1995000000,
+          "thue_gtgt": 199500000
+        }
+      ],
+      "diem_ky_vong": {
+        "can_bang": 0.0,
+        "nen_thoi_gian": 0.0,
+        "vat": 0.0,
+        "lien_ket_ngam": 0.0,
+        "tong": 0.0
+      },
+      "muc_ky_vong": "bo_qua"
+    }
+  ],
+  "doanh_nghiep_sach": [
+    "9900000068",
+    "9900000069",
+    "9900000070",
+    "9900000071",
+    "9900000072",
+    "9900000073",
+    "9900000074",
+    "9900000075",
+    "9900000076",
+    "9900000077",
+    "9900000078",
+    "9900000079",
+    "9900000080",
+    "9900000081",
+    "9900000082",
+    "9900000083",
+    "9900000084",
+    "9900000085",
+    "9900000086",
+    "9900000087",
+    "9900000088",
+    "9900000089",
+    "9900000090",
+    "9900000091",
+    "9900000092",
+    "9900000093",
+    "9900000094",
+    "9900000095",
+    "9900000096",
+    "9900000097",
+    "9900000098",
+    "9900000099",
+    "9900000100",
+    "9900000101",
+    "9900000102",
+    "9900000103",
+    "9900000104",
+    "9900000105",
+    "9900000106",
+    "9900000107",
+    "9900000108",
+    "9900000109",
+    "9900000110",
+    "9900000111",
+    "9900000112",
+    "9900000113",
+    "9900000114",
+    "9900000115",
+    "9900000116",
+    "9900000117",
+    "9900000118",
+    "9900000119",
+    "9900000120",
+    "9900000121",
+    "9900000122",
+    "9900000123",
+    "9900000124",
+    "9900000125",
+    "9900000126",
+    "9900000127",
+    "9900000128",
+    "9900000129",
+    "9900000130",
+    "9900000131",
+    "9900000132",
+    "9900000133",
+    "9900000134",
+    "9900000135",
+    "9900000136",
+    "9900000137",
+    "9900000138",
+    "9900000139",
+    "9900000140",
+    "9900000141",
+    "9900000142",
+    "9900000143",
+    "9900000144",
+    "9900000145",
+    "9900000146",
+    "9900000147",
+    "9900000148",
+    "9900000149",
+    "9900000150",
+    "9900000151",
+    "9900000152",
+    "9900000153",
+    "9900000154",
+    "9900000155",
+    "9900000156",
+    "9900000157",
+    "9900000158",
+    "9900000159",
+    "9900000160",
+    "9900000161",
+    "9900000162",
+    "9900000163",
+    "9900000164",
+    "9900000165",
+    "9900000166",
+    "9900000167",
+    "9900000168",
+    "9900000169",
+    "9900000170",
+    "9900000171",
+    "9900000172",
+    "9900000173",
+    "9900000174",
+    "9900000175",
+    "9900000176",
+    "9900000177",
+    "9900000178",
+    "9900000179",
+    "9900000180",
+    "9900000181",
+    "9900000182",
+    "9900000183",
+    "9900000184",
+    "9900000185",
+    "9900000186",
+    "9900000187",
+    "9900000188",
+    "9900000189",
+    "9900000190",
+    "9900000191",
+    "9900000192",
+    "9900000193",
+    "9900000194",
+    "9900000195",
+    "9900000196",
+    "9900000197",
+    "9900000198",
+    "9900000199",
+    "9900000200",
+    "9900000201",
+    "9900000202",
+    "9900000203",
+    "9900000204",
+    "9900000205",
+    "9900000206",
+    "9900000207",
+    "9900000208",
+    "9900000209",
+    "9900000210",
+    "9900000211",
+    "9900000212",
+    "9900000213",
+    "9900000214",
+    "9900000215",
+    "9900000216",
+    "9900000217",
+    "9900000218",
+    "9900000219",
+    "9900000220",
+    "9900000221",
+    "9900000222",
+    "9900000223",
+    "9900000224",
+    "9900000225",
+    "9900000226",
+    "9900000227",
+    "9900000228",
+    "9900000229",
+    "9900000230",
+    "9900000231",
+    "9900000232",
+    "9900000233",
+    "9900000234",
+    "9900000235",
+    "9900000236",
+    "9900000237",
+    "9900000238",
+    "9900000239",
+    "9900000240",
+    "9900000241",
+    "9900000242",
+    "9900000243",
+    "9900000244",
+    "9900000245",
+    "9900000246",
+    "9900000247",
+    "9900000248",
+    "9900000249",
+    "9900000250"
+  ]
+}

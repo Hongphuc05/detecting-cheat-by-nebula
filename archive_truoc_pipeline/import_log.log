@@ -1,0 +1,13 @@
+2026/07/24 12:13:37 [INFO] runner.go:75: Start to read /mnt/d/Bigdata/invoice_86/company.csv
+2026/07/24 12:13:37 [INFO] runner.go:75: Start to read /mnt/d/Bigdata/invoice_86/invoice.csv
+2026/07/24 12:13:37 [INFO] runner.go:96: Waiting for stats manager done
+2026/07/24 12:13:37 [INFO] runner.go:79: Finish to read /mnt/d/Bigdata/invoice_86/company.csv
+2026/07/24 12:13:37 [INFO] statsmgr.go:134: Remaining read files 1
+2026/07/24 12:13:37 [INFO] runner.go:79: Finish to read /mnt/d/Bigdata/invoice_86/invoice.csv
+2026/07/24 12:13:37 [INFO] statsmgr.go:134: Remaining read files 0
+2026/07/24 12:13:37 [INFO] runner.go:98: Waiting for all readers exit
+2026/07/24 12:13:37 [INFO] runner.go:109: All readers exited
+2026/07/24 12:13:37 [INFO] clientmgr.go:37: Client manager closing
+2026/07/24 12:13:37 [INFO] clientmgr.go:39: Client manager closed
+2026/07/24 12:13:37 [INFO] statsmgr.go:56: Stats manager closing
+2026/07/24 12:13:37 [INFO] statsmgr.go:61: Stats manager closed

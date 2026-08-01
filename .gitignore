@@ -1,0 +1,14 @@
+# Du lieu trung gian sinh ra khi chay pipeline — khong phai ma nguon, tai tao
+# duoc bang cach chay lai (python3 pipeline/run_all.py --all).
+data/
+output/
+
+# Bo du lieu test qua lon (bo IBM AML HI-Small: invoice.csv ~496MB, vuot gioi
+# han 100MB/file cua GitHub). Cac bo mau nho (hanoi_98cty,
+# data_test_mua_ban_long_vong) van giu lai binh thuong.
+raw/ibm_aml_hi_small/
+
+# Rac he thong / editor
+.DS_Store
+__pycache__/
+*.pyc
