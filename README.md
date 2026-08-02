@@ -6,6 +6,7 @@ trading / carousel VAT fraud) trên NebulaGraph.
 - **Cấu trúc thư mục & tổng quan dự án:** [`CAU_TRUC_DU_AN.md`](CAU_TRUC_DU_AN.md) — đọc trước file này
 - **Kế hoạch tổng thể (kiến trúc, Data Contract):** [`full_invoice_86/KE_HOACH_TONG_THE_PIPELINE_LONG_VONG.md`](../full_invoice_86/KE_HOACH_TONG_THE_PIPELINE_LONG_VONG.md)
 - **Giới hạn hệ thống (số đo thật):** [`GIOI_HAN_HE_THONG.md`](GIOI_HAN_HE_THONG.md)
+- **Kế hoạch nâng lên 10 chặng (phân tích khả thi + drawbacks):** [`KE_HOACH_NANG_CAP_10_HOP.md`](KE_HOACH_NANG_CAP_10_HOP.md)
 - **Kho nghiên cứu / benchmark (giữ nguyên, không dùng để vận hành):** [`invoice_agg_graph/`](../invoice_agg_graph/)
 
 ---

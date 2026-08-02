@@ -92,10 +92,30 @@ cung ứng) mà đồ thị ngẫu nhiên không tái tạo được. Áp hệ s
 | 180 | ~4–5 phút |
 | 200 | **rất có thể vượt timeout 10 phút** |
 
+#### Đo lại ngày 02/08/2026 — bản hiệu chỉnh tốt hơn
+
+Phép đo trên dùng đồ thị ngẫu nhiên với số tiền/kỳ sinh tuỳ ý, nên bước cắt nhánh theo điểm
+hoạt động không giống thực tế. Bản đo lại **lấy mẫu phân phối tiền và kỳ từ chính dữ liệu
+thật** (`data/trades.csv`), khiến mô phỏng sát hơn hẳn — hệ số hiệu chỉnh giảm từ ×5–6 xuống
+**×2,69** (mô phỏng 98 DN cho 5,6s, đo thật 15,04s):
+
+| Số DN | Out-degree | 5 chặng (mô phỏng) | 5 chặng (ước thực tế) | 10 chặng (ước thực tế) |
+|---:|---:|---:|---:|---:|
+| 98 | 81,7 | 5,6s | **15s** (khớp số đo thật) | **12,9 phút** (đã đo thật) |
+| 120 | 100,0 | 17,6s | ~47 giây | ~41 phút |
+| 150 | 124,8 | 56,9s | **~2,5 phút** | **~2,2 giờ** |
+| 200 | 167,4 | 291,6s | **~13,1 phút** | **~11,2 giờ** |
+
+Kết luận không đổi so với bản cũ (150 DN ~2 phút, 200 DN vượt 10 phút) — nhưng nay có con số
+cụ thể thay vì "rất có thể vượt", và có thêm cột 10 chặng.
+
 > **Khuyến nghị vận hành:** một cụm doanh nghiệp cần rà soát cùng lúc (cùng ngành, cùng
 > nhóm nghi vấn) nên giữ dưới **150 doanh nghiệp** nếu mật độ giao dịch giữa chúng cao
 > như detecting_cheat_by_nebula. Trên 180 DN/cụm, cân nhắc giảm số chặng xuống 3-4 hoặc chia nhỏ theo
 > mốc thời gian (chạy riêng từng quý thay vì cả năm) — xem mục 4.
+>
+> **Với ý định nâng lên 10 chặng**: chỉ khả thi ở cụm ≤ ~100 DN (12,9 phút). Từ 150 DN trở lên
+> là hàng giờ — xem phân tích đầy đủ tại [`KE_HOACH_NANG_CAP_10_HOP.md`](KE_HOACH_NANG_CAP_10_HOP.md).
 
 ### 2.3 Vì sao 2 chiều này khác nhau đến vậy — giải thích thuật toán
 
