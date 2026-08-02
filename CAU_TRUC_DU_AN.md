@@ -5,7 +5,7 @@
 > khi đọc `README.md` (hướng dẫn chạy CLI) hoặc `HUONG_DAN_SU_DUNG_WEB.md` (hướng
 > dẫn dùng giao diện web).
 >
-> Dọn dẹp lần gần nhất: 01/08/2026 — xem mục 5.
+> Dọn dẹp lần gần nhất: 02/08/2026 — xem mục 5.
 
 ---
 
@@ -37,19 +37,20 @@ detecting_cheat_by_nebula/
 ├── CAU_TRUC_DU_AN.md                      ← đang đọc — bản đồ tổng thể
 ├── README.md                              Hướng dẫn chạy pipeline bằng CLI
 ├── HUONG_DAN_SU_DUNG_WEB.md               Hướng dẫn dùng giao diện web (5 bước)
-├── KE_HOACH_XAY_DUNG_PIPELINE_VA_WEB.md   Kế hoạch đã triển khai (lịch sử quyết định)
 ├── GIOI_HAN_HE_THONG.md                   Đo đạc thật: hệ thống chạy tốt tới đâu, giới hạn ở đâu
-├── PROMPT_THIET_KE_LAI_GIAO_DIEN_NGHIEP_VU.md   Đề bài thiết kế lại giao diện theo từng bước
 │
 ├── nebula_in_gotix.md                     Nghiên cứu khả thi: đưa NebulaGraph vào Gotix
 ├── nebula_in_real.md                      Nghiên cứu: NebulaGraph trong thực tế ngành tài chính
 │
 ├── raw/                                   DỮ LIỆU THÔ — xem mục 3 (câu hỏi "raw/ cần gì")
-│   └── hanoi_98cty/                       1 BỘ DỮ LIỆU = 1 thư mục con (có thể có nhiều bộ)
-│       ├── company.csv                    98 công ty (KHÔNG có dòng tiêu đề)
-│       ├── invoice.csv                    8.976 hoá đơn (KHÔNG có dòng tiêu đề)
-│       ├── Mua vào bán ra 86 công ty.xlsx  File Excel gốc (91 sheet) — nguồn thật ban đầu
-│       └── script.py                      Script trích xuất company.csv/invoice.csv TỪ file Excel trên
+│   ├── hanoi_98cty/                       1 BỘ DỮ LIỆU = 1 thư mục con
+│   │   ├── company.csv                    98 công ty (KHÔNG có dòng tiêu đề)
+│   │   ├── invoice.csv                    8.976 hoá đơn (KHÔNG có dòng tiêu đề)
+│   │   ├── Mua vào bán ra 86 công ty.xlsx  File Excel gốc (91 sheet) — nguồn thật ban đầu
+│   │   └── script.py                      Script trích xuất company.csv/invoice.csv TỪ file Excel trên
+│   ├── data_test_mua_ban_long_vong/       Bộ tổng hợp có cài sẵn 19 chuỗi gian lận + DAP_AN.json để đối chiếu
+│   └── ibm_aml_hi_small/                  Bộ test QUY MÔ (515.080 DN / 4,49 triệu hoá đơn, nguồn IBM AML)
+│                                          — KHÔNG đẩy lên git (vượt giới hạn 100MB/file của GitHub)
 │
 ├── data/                                  Dữ liệu ĐÃ CHUẨN HOÁ — output của ingest_csv86.py
 │   ├── companies.csv                      mst, name, sector, address, revenue, report_date
@@ -71,17 +72,14 @@ detecting_cheat_by_nebula/
 │   ├── build_report.py                    .jsonl → report.txt + top.json + cycles.ngql
 │   └── run_all.py                         Điều phối toàn bộ, tạo thư mục output/runs/<id>/
 │
-├── output/runs/<runId>/                   MỖI LẦN CHẠY — 1 thư mục riêng
-│   ├── meta.json                          Tham số + thời gian + số liệu tóm tắt
-│   ├── progress.log                       Toàn bộ log tiến trình
-│   ├── validation.json                    Kết quả quét Data Contract
-│   ├── graph_risk_flags.jsonl             Toàn bộ chu trình đã chấm điểm
-│   ├── report.txt                         Báo cáo dạng chữ
-│   ├── top.json                           Cùng nội dung report.txt, dạng máy đọc — web dùng file này
-│   └── cycles.ngql                        Câu lệnh nGQL dựng sẵn để vẽ lên Nebula Studio
-│
-└── archive_truoc_pipeline/                LƯU TRỮ — tài liệu & rác từ giai đoạn TRƯỚC khi có pipeline
-    └── (xem mục 5 — không dùng để vận hành, giữ lại để tra cứu lịch sử)
+└── output/runs/<runId>/                   MỖI LẦN CHẠY — 1 thư mục riêng
+    ├── meta.json                          Tham số + thời gian + số liệu tóm tắt
+    ├── progress.log                       Toàn bộ log tiến trình
+    ├── validation.json                    Kết quả quét Data Contract
+    ├── graph_risk_flags.jsonl             Toàn bộ chu trình đã chấm điểm
+    ├── report.txt                         Báo cáo dạng chữ
+    ├── top.json                           Cùng nội dung report.txt, dạng máy đọc — web dùng file này
+    └── cycles.ngql                        Câu lệnh nGQL dựng sẵn để vẽ lên Nebula Studio
 ```
 
 ---
@@ -105,7 +103,7 @@ Khi chọn *"Dùng dữ liệu có sẵn trong detecting_cheat_by_nebula/raw"* (
 trên giao diện web, `Step1Data` gọi `GET /api/fraud/raw-datasets` để **liệt kê
 mọi bộ đang có**, người dùng chọn đúng 1 bộ trước khi bấm "Nhập dữ liệu". Phía
 CLI, `ingest_csv86.py` đọc bộ theo biến môi trường `DATASET` (mặc định
-`hanoi_98cty` — bộ hiện có duy nhất):
+`hanoi_98cty`):
 
 ```python
 DEFAULT_DATASET = "hanoi_98cty"
@@ -158,37 +156,28 @@ không báo lỗi gì. `data/` chỉ là trạm trung chuyển, không phải ng
 
 ---
 
-## 5. `archive_truoc_pipeline/` — vì sao giữ, không xoá
+## 5. Lịch sử dọn dẹp
 
-Trước khi có pipeline Python (`run_all.py` và 8 script còn lại), dữ liệu 86 công
-ty từng được nạp thẳng vào Nebula bằng `nebula-importer` (công cụ dòng lệnh đọc
-file YAML). Các tài liệu/tệp thuộc giai đoạn đó đã được **dọn vào đây ngày
-01/08/2026**, không xoá hẳn vì vẫn có giá trị tra cứu lịch sử:
+### 02/08/2026 — đổi tên dự án & dọn file thừa
 
-| Tệp | Vai trò cũ |
+| Việc | Chi tiết |
 |---|---|
-| `KE_HOACH_IMPORT.md` | Kế hoạch khảo sát 91 sheet Excel gốc và ánh xạ sang schema đồ thị |
-| `BAO_CAO_KIEM_THU_NEBULA.md` | Nhật ký thử nghiệm query tay trên space `invoice_graph` |
-| `KICH_BAN_PHAN_TICH.md` | Kịch bản phát hiện hoá đơn khống bằng query tay (tiền thân của `detect_circular_trading.py`) |
-| `invoice_graph.md` | Bản sao data dictionary — **bản chính thức đang dùng nằm ở** `nebula_demo/schemas/invoice_graph.md`, mọi tham chiếu trong code đều trỏ tới đó |
-| `invoice_graph_import.yaml` | Cấu hình `nebula-importer` — đã thay bằng `schemas/detecting_cheat_by_nebula.ngql` + `pipeline/load_schema.py` |
-| `import_log.log` | Log của lần chạy `nebula-importer` cũ |
-| `company.csv.bak`, `invoice.csv.bak` | Bản dữ liệu cũ hơn (thiếu 12 dòng so với bản hiện hành trong `raw/`) |
-| `err/` | Thư mục lỗi rỗng do `nebula-importer` tự sinh |
+| Đổi tên thư mục | `invoice_86/` → `detecting_cheat_by_nebula/`, cập nhật mọi đường dẫn trong `nebula_demo` (Go) và các script Python. Đổi luôn `schemas/invoice_86.ngql` → `schemas/detecting_cheat_by_nebula.ngql` |
+| Xoá 2 tệp prompt dùng một lần | `PROMPT_SINH_DU_LIEU_TEST_LONG_VONG.md` (đề bài sinh bộ test — đã sinh xong), `PROMPT_THIET_KE_LAI_GIAO_DIEN_NGHIEP_VU.md` (đề bài thiết kế UI — đã làm xong) |
+| Xoá `KE_HOACH_XAY_DUNG_PIPELINE_VA_WEB.md` | Kế hoạch đã triển khai xong, nội dung còn giá trị đã nằm trong tài liệu này + `README.md` |
+| Xoá `archive_truoc_pipeline/` | Tài liệu & tệp `.bak` từ giai đoạn `nebula-importer` cũ, không có gì đang tham chiếu tới |
+| Dọn `output/runs/` | Giữ 3 lần chạy gần nhất, xoá 29 lần cũ — giải phóng **465MB → 364KB** |
 
-**Không có script hay tài liệu nào đang hoạt động tham chiếu tới thư mục này.**
-An toàn để xoá hẳn sau này nếu cần, nhưng giữ lại không tốn chi phí và hữu ích
-khi cần đối chiếu "trước đây đã thử gì".
+Tất cả tệp bị xoá đều đã có trong lịch sử git (`detecting-cheat-by-nebula` trên
+GitHub), khôi phục được bằng `git show <commit>:<đường_dẫn>` nếu cần tra cứu lại.
 
----
-
-## 6. Việc đã dọn ngày 01/08/2026
+### 01/08/2026 — dọn lần đầu, gom cấu trúc
 
 | Trước | Sau |
 |---|---|
 | `company.csv`, `invoice.csv`, `Mua vào bán ra 86 công ty.xlsx` bị trùng lặp ở cả gốc `detecting_cheat_by_nebula/` lẫn `raw/` | Xoá bản trùng ở gốc (đã đối chiếu byte-for-byte giống hệt), giữ đúng 1 bản trong `raw/` |
 | `script.py` nằm ở gốc, tách rời file Excel nó cần đọc | Chuyển vào `raw/script.py` — cùng chỗ với `.xlsx`, không phải sửa dòng code nào (đường dẫn tính theo vị trí file) |
-| 8 tệp/thư mục thuộc giai đoạn `nebula-importer` cũ nằm rải rác ở gốc | Gom vào `archive_truoc_pipeline/` |
+| 8 tệp/thư mục thuộc giai đoạn `nebula-importer` cũ nằm rải rác ở gốc | Gom vào `archive_truoc_pipeline/` (đã xoá hẳn ngày 02/08/2026) |
 | Không có tài liệu tổng quan cấu trúc | Tài liệu này |
 
 Kiểm chứng sau khi dọn: `python3 pipeline/ingest_csv86.py` vẫn nạp đúng 98 công

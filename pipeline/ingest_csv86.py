@@ -98,6 +98,12 @@ DATA_DIR = Path(os.environ.get("DATA_DIR", BASE / "data"))
 
 N_STEPS = 3
 
+# Tran an toan cho so cap SHARES_ADDRESS (xem derive_shares_address). Dat 5 trieu:
+# du rong cho moi bo du lieu that (98 cong ty that -> 0 cap; 515K cong ty voi dia
+# chi da dang thuc te -> vai chuc nghin cap), nhung chan duoc truong hop dia chi
+# sinh tu dong bi trung lap khien so cap no theo binh phuong.
+MAX_SHARES_ADDRESS_PAIRS = int(os.environ.get("MAX_SHARES_ADDRESS_PAIRS", "5000000"))
+
 # Cot trong invoice.csv (khong header). Chi so co dinh — neu doi thu tu cot phai
 # sua o day, KHONG doan theo ten.
 I_SO_HD, I_NGAY, I_BAN, I_MUA, I_MOTA, I_TIEN, I_VAT = 0, 1, 2, 3, 4, 5, 6
@@ -252,6 +258,27 @@ def derive_shares_address(company_rows: list[list[str]]) -> int:
         norm = normalize_address(address)
         if norm:  # bo qua dia chi rong (cong ty stub, ho so khong day du)
             by_addr[norm].append(mst.strip())
+
+    # CHOT CHAN AN TOAN — uoc tinh so cap TRUOC khi sinh.
+    #
+    # Vi sao can: so cap tang theo BINH PHUONG so cong ty cung 1 dia chi. Da mac
+    # loi that — mot bo du lieu test sinh nham chi 600 dia chi khac nhau cho
+    # 515.080 cong ty (~858 cong ty/dia chi) khien buoc nay phai sinh ~220 TRIEU
+    # cap trong 1 list Python: tien trinh chay 98% CPU, RAM tang khong diem dung,
+    # khong bao gio xong, phai kill tay. Uoc tinh truoc + dung som voi thong bao
+    # ro rang thi loi kieu do lo ra ngay thay vi treo may am tham.
+    est_pairs = sum(len(set(m)) * (len(set(m)) - 1) // 2 for m in by_addr.values())
+    if est_pairs > MAX_SHARES_ADDRESS_PAIRS:
+        worst_addr, worst_msts = max(by_addr.items(), key=lambda kv: len(set(kv[1])))
+        raise ValueError(
+            f"Du lieu dia chi bat thuong: se sinh ~{est_pairs:,} cap SHARES_ADDRESS "
+            f"(nguong an toan {MAX_SHARES_ADDRESS_PAIRS:,}).\n"
+            f"  {len(by_addr):,} dia chi khac nhau cho {len(company_rows):,} cong ty.\n"
+            f"  Dia chi bi dung chung nhieu nhat: {len(set(worst_msts)):,} cong ty "
+            f"-> {worst_addr!r}\n"
+            f"Nguyen nhan thuong gap: file company.csv duoc sinh tu dong voi khong "
+            f"gian dia chi qua hep. Kiem tra lai nguon du lieu truoc khi chay tiep."
+        )
 
     rows = []
     for norm, msts in sorted(by_addr.items()):

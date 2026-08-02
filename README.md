@@ -5,7 +5,7 @@ trading / carousel VAT fraud) trên NebulaGraph.
 
 - **Cấu trúc thư mục & tổng quan dự án:** [`CAU_TRUC_DU_AN.md`](CAU_TRUC_DU_AN.md) — đọc trước file này
 - **Kế hoạch tổng thể (kiến trúc, Data Contract):** [`full_invoice_86/KE_HOACH_TONG_THE_PIPELINE_LONG_VONG.md`](../full_invoice_86/KE_HOACH_TONG_THE_PIPELINE_LONG_VONG.md)
-- **Kế hoạch xây dựng pipeline + web:** [`KE_HOACH_XAY_DUNG_PIPELINE_VA_WEB.md`](KE_HOACH_XAY_DUNG_PIPELINE_VA_WEB.md)
+- **Giới hạn hệ thống (số đo thật):** [`GIOI_HAN_HE_THONG.md`](GIOI_HAN_HE_THONG.md)
 - **Kho nghiên cứu / benchmark (giữ nguyên, không dùng để vận hành):** [`invoice_agg_graph/`](../invoice_agg_graph/)
 
 ---
@@ -51,8 +51,7 @@ detecting_cheat_by_nebula/
 ├── data/         dữ liệu đã chuẩn hoá: companies.csv, trades.csv, shares_address.csv
 ├── schemas/      detecting_cheat_by_nebula.ngql — khuôn CREATE SPACE/TAG/EDGE/INDEX
 ├── pipeline/     7 script Python + datasources.json
-├── output/runs/  mỗi lần chạy 1 thư mục
-└── archive_truoc_pipeline/   tài liệu/rác từ giai đoạn nebula-importer cũ, không dùng để vận hành
+└── output/runs/  mỗi lần chạy 1 thư mục
 ```
 
 ### Các script

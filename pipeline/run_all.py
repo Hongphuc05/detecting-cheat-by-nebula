@@ -49,6 +49,10 @@ RUNS_DIR = BASE / "output" / "runs"
 MANIFEST = PIPELINE / "datasources.json"
 
 
+# Tien trinh con dang chay — de dep sach khi bi loi/ngat giua chung.
+_running_procs: list[subprocess.Popen] = []
+
+
 def run_script(name: str, env_extra: dict, log_file, label: str) -> dict:
     """Chay 1 script con, chuyen tiep stdout ra ngoai (de Go/nguoi doc thay tien
     trinh theo thoi gian thuc) DONG THOI ghi vao progress.log.
@@ -60,6 +64,7 @@ def run_script(name: str, env_extra: dict, log_file, label: str) -> dict:
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         env=env, text=True, encoding="utf-8", bufsize=1,
     )
+    _running_procs.append(proc)
     done_payload: dict = {}
     result_payload: dict = {}
     for line in proc.stdout:
@@ -78,9 +83,118 @@ def run_script(name: str, env_extra: dict, log_file, label: str) -> dict:
             except json.JSONDecodeError:
                 pass
     code = proc.wait()
+    if proc in _running_procs:
+        _running_procs.remove(proc)
     if code != 0:
         raise RuntimeError(f"Buoc '{label}' that bai (ma thoat {code}) — xem log ben tren")
     return {**done_payload, **({"_result": result_payload} if result_payload else {})}
+
+
+# ---------------------------------------------------------------------------
+# Don dep khi that bai
+# ---------------------------------------------------------------------------
+
+def kill_leftover_procs() -> int:
+    """Giet moi tien trinh con con song. Tra so tien trinh da giet.
+
+    Vi sao can: mot buoc that bai giua chung co the de lai tien trinh con van
+    dang ghi vao Nebula. Neu khong giet, lan import ke tiep se chay song song
+    voi no -> tranh chap du lieu, ket qua khong the tin duoc."""
+    killed = 0
+    for p in list(_running_procs):
+        if p.poll() is None:          # con dang chay
+            try:
+                p.kill()
+                p.wait(timeout=10)
+                killed += 1
+            except Exception:
+                pass
+        _running_procs.remove(p)
+    return killed
+
+
+def space_exists(space: str) -> bool:
+    """Kiem tra space co ton tai trong Nebula khong (khong USE vao space)."""
+    try:
+        from nebula_client import session as _session
+        with _session(use_space=False) as s:
+            resp = s.execute("SHOW SPACES;")
+            if not resp.is_succeeded():
+                return False
+            for i in range(resp.row_size()):
+                row = resp.row_values(i)
+                if row and str(row[0].as_string()) == space:
+                    return True
+    except Exception:
+        pass
+    return False
+
+
+def drop_space(space: str) -> bool:
+    """Xoa han space khoi Nebula. Tra True neu thanh cong."""
+    try:
+        from nebula_client import session as _session
+        with _session(use_space=False) as s:
+            resp = s.execute(f"DROP SPACE IF EXISTS {space};")
+            return resp.is_succeeded()
+    except Exception:
+        return False
+
+
+def cleanup_after_failure(space: str, log_file, drop_allowed: bool,
+                          reason: str) -> dict:
+    """Don sach sau khi import that bai, de san sang import lai ngay.
+
+    `drop_allowed` — CO duoc phep xoa space khong. Chi True khi lan chay nay tu
+    tao ra space (truoc do chua ton tai) hoac nguoi dung da yeu cau --rebuild.
+    Vi sao phai chan: neu space da co san du lieu tot tu truoc va lan chay nay
+    chi bo sung them, xoa han space se pha huy du lieu cu cua nguoi dung — mat
+    mat that, khong khoi phuc duoc.
+    """
+    def emit(msg: str) -> None:
+        progress.log(msg)
+        if log_file and not log_file.closed:
+            log_file.write(msg + "\n")
+            log_file.flush()
+
+    emit(f"--- Don dep sau khi that bai ({reason}) ---")
+    info: dict = {"reason": reason}
+
+    n_killed = kill_leftover_procs()
+    info["processes_killed"] = n_killed
+    emit(f"Da giet {n_killed} tien trinh con con dang chay"
+         if n_killed else "Khong con tien trinh con nao dang chay")
+
+    if drop_allowed:
+        if drop_space(space):
+            info["space_dropped"] = True
+            emit(f"Da xoa space '{space}' (du lieu nap do dang)")
+        else:
+            info["space_dropped"] = False
+            emit(f"KHONG xoa duoc space '{space}' — kiem tra Nebula con song khong")
+    else:
+        info["space_dropped"] = False
+        info["space_kept_reason"] = "space da ton tai truoc lan chay nay"
+        emit(f"GIU NGUYEN space '{space}': space nay da co truoc lan chay, "
+             f"xoa se mat du lieu cu. Neu muon lam sach han, chay lai voi --rebuild.")
+
+    # data/*.csv la file trung gian, sinh lai duoc moi lan chay -> xoa cho sach.
+    removed = []
+    data_dir = BASE / "data"
+    for name in ("companies.csv", "trades.csv", "shares_address.csv"):
+        f = data_dir / name
+        if f.exists():
+            try:
+                f.unlink()
+                removed.append(name)
+            except OSError:
+                pass
+    info["intermediate_removed"] = removed
+    emit(f"Da xoa file trung gian: {', '.join(removed)}" if removed
+         else "Khong co file trung gian nao can xoa")
+
+    emit("=== Da don sach — co the bam Nhap du lieu lai ngay ===")
+    return info
 
 
 def main() -> None:
@@ -135,24 +249,52 @@ def main() -> None:
     }
     (run_dir / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
 
+    # Ghi nho space da ton tai TRUOC lan chay nay chua — quyet dinh xem khi that
+    # bai co duoc phep xoa space khong (xem cleanup_after_failure).
+    space_existed_before = space_exists(space) if (do_schema or do_sync) else True
+
     with open(run_dir / "progress.log", "w", encoding="utf-8") as log:
         progress.log(f"=== Lan chay {run_id} · space {space} ===")
         log.write(f"=== Lan chay {run_id} · space {space} ===\n")
 
-        if do_ingest:
-            progress.log(f"--- Doc du lieu nguon ({ds['name']}) ---")
-            ingest_env = {"DATASET": args.dataset} if args.dataset else {}
-            run_script(ds["script"], ingest_env, log, "ingest")
+        # Cac buoc NHAP DU LIEU. Bo trong try rieng: neu that bai o day thi du
+        # lieu trong Nebula dang do dang -> phai don sach truoc khi cho import
+        # lai, neu khong lan sau se nap chong len du lieu nua voi.
+        # (Cac buoc sau — validate/detect/report — chi DOC, that bai o do khong
+        # lam ban du lieu nen khong can don.)
+        try:
+            if do_ingest:
+                progress.log(f"--- Doc du lieu nguon ({ds['name']}) ---")
+                ingest_env = {"DATASET": args.dataset} if args.dataset else {}
+                run_script(ds["script"], ingest_env, log, "ingest")
 
-        if do_schema:
-            progress.log("--- Tao schema ---")
-            run_script("load_schema.py",
-                       {"SPACE": space, **({"REBUILD": "1"} if args.rebuild else {})},
-                       log, "schema")
+            if do_schema:
+                progress.log("--- Tao schema ---")
+                run_script("load_schema.py",
+                           {"SPACE": space, **({"REBUILD": "1"} if args.rebuild else {})},
+                           log, "schema")
 
-        if do_sync:
-            progress.log("--- Nap vao Nebula ---")
-            run_script("sync_graph.py", {"SPACE": space}, log, "sync")
+            if do_sync:
+                progress.log("--- Nap vao Nebula ---")
+                run_script("sync_graph.py", {"SPACE": space}, log, "sync")
+
+        except BaseException as exc:
+            # BaseException (khong phai Exception): bat ca KeyboardInterrupt va
+            # SystemExit — nguoi dung bam Huy giua chung cung phai don sach.
+            cleanup = cleanup_after_failure(
+                space, log,
+                drop_allowed=args.rebuild or not space_existed_before,
+                reason=f"{type(exc).__name__}: {exc}",
+            )
+            meta.update({
+                "status": "failed",
+                "failed_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "error": f"{type(exc).__name__}: {exc}",
+                "cleanup": cleanup,
+            })
+            (run_dir / "meta.json").write_text(
+                json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+            raise
 
         # --- Kiem tra hop dong du lieu (luon chay) -------------------------
         progress.log("--- Kiem tra du lieu ---")
