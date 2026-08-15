@@ -3,6 +3,10 @@
 
 Moi lan chay tao 1 thu muc rieng trong ../output/runs/<runId>/ chua day du:
   meta.json  progress.log  graph_risk_flags.jsonl  report.txt  top.json  cycles.ngql
+  invoice_loops_min_len3_<pf>_<pt>.jsonl   (chu trinh — members/hop_len/amounts/periods)
+  company_metrics_<pf>_<pt>.jsonl          (degree/reciprocity/new_partner_90d/betweenness)
+  invoice_flags_min_len3_<pf>_<pt>.jsonl   (co is_circular tung hoa don thuc — CAN Trino,
+                                             bo qua neu Trino khong ket noi duoc)
 
 Chay day du (lan dau, hoac khi doi du lieu nguon):
   python3 run_all.py --all
@@ -212,6 +216,12 @@ def main() -> None:
                     help="ten bo du lieu trong raw/<ten_bo>/ — chi dung khi --datasource local_existing")
     ap.add_argument("--top-n", type=int, default=20)
     ap.add_argument("--run-id")
+    ap.add_argument("--skip-detect", action="store_true",
+                    help="chi ingest+schema+sync, KHONG chay detect/report — dung cho luong "
+                         "'Nhap du lieu' (chi nap du lieu vao Nebula, chua phan tich). Buoc "
+                         "detect/report thuoc rieng workflow 'Chay' (Step 4), tranh chay 2 lan "
+                         "cho cung 1 lan bam — lan dau (luc import) dung tham so mac dinh, lan sau "
+                         "(luc bam Chay) dung tham so nguoi dung chon, ket qua lan dau bi vut bo.")
     args = ap.parse_args()
 
     # Vi sao khong fallback thang ve "invoice_agg_graph": tung mac loi that — chay
@@ -245,7 +255,8 @@ def main() -> None:
         "method": args.method, "max_hops": args.hops,
         "started_at": started.strftime("%Y-%m-%d %H:%M:%S"),
         "steps_run": [k for k, v in [("ingest", do_ingest), ("schema", do_schema),
-                                     ("sync", do_sync), ("detect", True), ("report", True)] if v],
+                                     ("sync", do_sync), ("detect", not args.skip_detect),
+                                     ("report", not args.skip_detect)] if v],
     }
     (run_dir / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -262,11 +273,13 @@ def main() -> None:
         # lai, neu khong lan sau se nap chong len du lieu nua voi.
         # (Cac buoc sau — validate/detect/report — chi DOC, that bai o do khong
         # lam ban du lieu nen khong can don.)
+        ingest_result: dict = {}
+        sync_result: dict = {}
         try:
             if do_ingest:
                 progress.log(f"--- Doc du lieu nguon ({ds['name']}) ---")
                 ingest_env = {"DATASET": args.dataset} if args.dataset else {}
-                run_script(ds["script"], ingest_env, log, "ingest")
+                ingest_result = run_script(ds["script"], ingest_env, log, "ingest")
 
             if do_schema:
                 progress.log("--- Tao schema ---")
@@ -276,7 +289,7 @@ def main() -> None:
 
             if do_sync:
                 progress.log("--- Nap vao Nebula ---")
-                run_script("sync_graph.py", {"SPACE": space}, log, "sync")
+                sync_result = run_script("sync_graph.py", {"SPACE": space}, log, "sync")
 
         except BaseException as exc:
             # BaseException (khong phai Exception): bat ca KeyboardInterrupt va
@@ -296,52 +309,100 @@ def main() -> None:
                 json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
             raise
 
-        # --- Kiem tra hop dong du lieu (luon chay) -------------------------
-        progress.log("--- Kiem tra du lieu ---")
-        val = run_script("validate_contract.py", {"SPACE": space}, log, "validate")
-        contract = val.get("_result", {})
-        if contract:
-            (run_dir / "validation.json").write_text(
-                json.dumps(contract, ensure_ascii=False, indent=2), encoding="utf-8")
-            progress.log(contract.get("headline", ""))
-            if not contract.get("can_run"):
-                raise SystemExit("Du lieu chua du de chay — xem validation.json")
+        pf = pt = None
+        det: dict = {}
+        loops_file = metrics_file = flags_file = None
 
-        # Ky mac dinh: lay dai ky THAT co trong do thi (khong doan)
-        pf = args.period_from or contract.get("data_period_from")
-        pt = args.period_to or contract.get("data_period_to")
-        if pf is None or pt is None:
-            raise SystemExit("Khong xac dinh duoc ky phan tich — truyen --from/--to")
+        if args.skip_detect:
+            # Luong "Nhap du lieu" (Step 1) — chi can du lieu nam trong Nebula,
+            # KHONG can biet chu trinh nao/diem may — do la viec cua Step 4 (Chay),
+            # noi nguoi dung da chon dung PERIOD_FROM/TO + MAX_HOPS + METHOD. Chay
+            # detect o day (voi tham so MAC DINH, chua ai chon) chi de roi bi vut
+            # bo khi Step 4 chay lai — da do that: ton vai phut tren du lieu day
+            # dac (xem cty86_full), khong ai dung ket qua do ca.
+            progress.log("--- Bo qua kiem tra/phat hien/bao cao (--skip-detect: "
+                         "chi nhap du lieu, chua phan tich) ---")
+        else:
+            # --- Kiem tra hop dong du lieu ---------------------------------
+            progress.log("--- Kiem tra du lieu ---")
+            val = run_script("validate_contract.py", {"SPACE": space}, log, "validate")
+            contract = val.get("_result", {})
+            if contract:
+                (run_dir / "validation.json").write_text(
+                    json.dumps(contract, ensure_ascii=False, indent=2), encoding="utf-8")
+                progress.log(contract.get("headline", ""))
+                if not contract.get("can_run"):
+                    raise SystemExit("Du lieu chua du de chay — xem validation.json")
 
-        # --- Phat hien ----------------------------------------------------
-        progress.log(f"--- Phat hien chu trinh (ky {pf}-{pt}) ---")
-        jsonl = run_dir / "graph_risk_flags.jsonl"
-        det = run_script("detect_circular_trading.py", {
-            "SPACE": space, "PERIOD_FROM": pf, "PERIOD_TO": pt,
-            "METHOD": args.method, "MAX_HOPS": args.hops, "OUT_FILE": str(jsonl),
-        }, log, "detect")
+            # Ky mac dinh: lay dai ky THAT co trong do thi (khong doan)
+            pf = args.period_from or contract.get("data_period_from")
+            pt = args.period_to or contract.get("data_period_to")
+            if pf is None or pt is None:
+                raise SystemExit("Khong xac dinh duoc ky phan tich — truyen --from/--to")
 
-        # --- Bao cao ------------------------------------------------------
-        progress.log("--- Sinh bao cao ---")
-        elapsed = time.time() - t0
-        report_meta = {**meta, "period_from": pf, "period_to": pt,
-                       "elapsed_sec": round(elapsed, 1),
-                       "max_achievable_score": det.get("max_achievable_score", 100)}
-        rep = run_script("build_report.py", {
-            "SPACE": space, "IN_FILE": str(jsonl), "OUT_DIR": str(run_dir),
-            "TOP_N": args.top_n, "META_JSON": json.dumps(report_meta, ensure_ascii=False),
-        }, log, "report")
+            # --- Phat hien --------------------------------------------------
+            progress.log(f"--- Phat hien chu trinh (ky {pf}-{pt}) ---")
+            jsonl = run_dir / "graph_risk_flags.jsonl"
+            det = run_script("detect_circular_trading.py", {
+                "SPACE": space, "PERIOD_FROM": pf, "PERIOD_TO": pt,
+                "METHOD": args.method, "MAX_HOPS": args.hops, "OUT_FILE": str(jsonl),
+            }, log, "detect")
+            # detect_circular_trading.py tu dat ten 2 file nay trong CUNG thu muc voi
+            # OUT_FILE (xem detect_circular_trading.py::main, bien loops_file/metrics_file)
+            loops_file = run_dir / f"invoice_loops_min_len3_{pf}_{pt}.jsonl"
+            metrics_file = run_dir / f"company_metrics_{pf}_{pt}.jsonl"
+
+            # --- Co theo tung hoa don thuc (tra nguoc qua Trino) ---------------
+            flags_file = run_dir / f"invoice_flags_min_len3_{pf}_{pt}.jsonl"
+            try:
+                run_script("export_invoice_flags.py", {
+                    "IN_FILE": str(jsonl), "PERIOD_FROM": pf, "PERIOD_TO": pt,
+                    "OUT_DIR": str(run_dir),
+                }, log, "invoice_flags")
+            except RuntimeError as exc:
+                # Buoc nay CAN Trino (khac voi detect, chi can Nebula) — neu Trino
+                # khong ket noi duoc (vd package `trino` chua cai, hoac dang chay
+                # tren dataset CSV thuan khong co nguon Trino), khong nen lam SAP
+                # toan bo run — cac output khac (graph_risk_flags/report) van dung.
+                progress.log(f"!! Bo qua invoice_flags (can Trino, khong bat buoc): {exc}")
+                flags_file = None
+
+            # --- Bao cao ------------------------------------------------------
+            progress.log("--- Sinh bao cao ---")
+            elapsed = time.time() - t0
+            report_meta = {**meta, "period_from": pf, "period_to": pt,
+                           "elapsed_sec": round(elapsed, 1),
+                           "max_achievable_score": det.get("max_achievable_score", 100)}
+            run_script("build_report.py", {
+                "SPACE": space, "IN_FILE": str(jsonl), "OUT_DIR": str(run_dir),
+                "TOP_N": args.top_n, "META_JSON": json.dumps(report_meta, ensure_ascii=False),
+            }, log, "report")
+
+    # Lich su NAP DU LIEU (--skip-detect) truoc day luon ghi "result" toan None du
+    # sync_graph.py da tu tinh san so lieu (companies/trades...) qua progress.done()
+    # — chi la run_script() khong duoc gan bien nen bi vut di. Gio lay dung tu
+    # sync_result (uu tien, vi la buoc NAP THAT vao Nebula) hoac ingest_result neu
+    # khong co sync (vd chi chay --ingest don le).
+    if args.skip_detect:
+        run_result = {k: v for k, v in (sync_result or ingest_result or {}).items()
+                      if k != "space"}
+    else:
+        run_result = {k: det.get(k) for k in
+                      ("total", "red", "watch", "max_achievable_score", "top_score")}
 
     meta.update({
         "period_from": pf, "period_to": pt,
         "finished_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "elapsed_sec": round(time.time() - t0, 1),
         "status": "success",
-        "result": {k: det.get(k) for k in
-                   ("total", "red", "watch", "max_achievable_score", "top_score")},
-        "files": {"jsonl": "graph_risk_flags.jsonl", "report": "report.txt",
+        "result": run_result,
+        "files": ({"jsonl": "graph_risk_flags.jsonl", "report": "report.txt",
                   "top_json": "top.json", "cycles_ngql": "cycles.ngql",
-                  "validation": "validation.json", "log": "progress.log"},
+                  "validation": "validation.json", "log": "progress.log",
+                  "invoice_loops": loops_file.name if loops_file else None,
+                  "company_metrics": metrics_file.name if metrics_file else None,
+                  "invoice_flags": flags_file.name if flags_file else None}
+                  if not args.skip_detect else {}),
     })
     (run_dir / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
 

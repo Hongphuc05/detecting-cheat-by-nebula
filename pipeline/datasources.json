@@ -23,7 +23,7 @@
         }
       ],
       "requires": ["4.1.tag_company", "4.1.edge_trades", "4.1.rank_period"],
-      "optional": ["4.1.index", "4.2.legal_rep", "4.2.owns", "4.2.shares_address", "4.2.status_date"]
+      "optional": ["4.1.index", "4.2.legal_rep", "4.2.owns", "4.2.shares_address", "4.2.shares_phone", "4.2.status_date"]
     },
     {
       "id": "shell_company",
@@ -112,11 +112,11 @@
     {
       "id": "trino_gotix",
       "name": "Kết nối Trino / Gotix lakehouse",
-      "description": "Đọc trực tiếp từ mart hóa đơn B2B trong data lakehouse thay vì file CSV.",
-      "status": "planned",
+      "description": "Đọc trực tiếp từ tier2.einvoice_invoice (giao dịch) + tier2.company_header/company_industry (tên/địa chỉ/ngành/người đại diện pháp luật — nguồn chính, ~350k công ty) + tier2.tax_declaration_bctc_* (doanh thu/kỳ báo cáo, và fallback tên/địa chỉ khi mst chưa có trong domain company) trong Gotix Data Lakehouse qua Trino thay vì file CSV. Biến môi trường: TRINO_HOST, TRINO_PORT, TRINO_USER, TRINO_CATALOG (đều có mặc định), PERIOD_FROM/PERIOD_TO (tuỳ chọn, không set = nạp toàn bộ).",
+      "status": "available",
       "script": "ingest_trino_gotix.py",
       "inputs": [],
-      "blocked_by": "Domain einvoice trong Gotix hiện vẫn là scaffold rỗng (DDL 0 byte, DAG là EmptyOperator). Xem detecting_cheat_by_nebula/nebula_in_gotix.md."
+      "blocked_by": "Đã chạy thử trọn vẹn qua run_all.py --datasource trino_gotix --all (12/08/2026, dữ liệu test tổng hợp mô phỏng vòng khép kín 3 công ty thật lấy MST từ company_header) — ra đúng graph_risk_flags/company_metrics/invoice_flags. company.csv giờ có thêm cột người đại diện pháp luật (legal_reps.csv -> TAG Person/EDGE LEGAL_REP_OF), ~98% MST có dữ liệu. CHƯA test ở quy mô einvoice thật (tier2.einvoice_invoice hiện đang 0 dòng trong sandbox này — domain einvoice chưa nạp dữ liệu thật quy mô lớn, xem gotix-datalake/data/domains/einvoice/README.md mục 'Chưa làm')."
     }
   ]
 }

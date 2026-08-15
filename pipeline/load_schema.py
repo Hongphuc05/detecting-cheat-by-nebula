@@ -30,6 +30,12 @@ SCHEMA_FILE = Path(__file__).resolve().parent.parent / "schemas" / "detecting_ch
 # Con so lay tu chu thich trong schema goc cua tax_graph (10-20s cho space).
 WAIT_SPACE = int(os.environ.get("WAIT_SPACE", "20"))
 WAIT_SCHEMA = int(os.environ.get("WAIT_SCHEMA", "10"))
+# Thieu wait nay la nguyen nhan that su gay "mat du lieu gia" 07/08/2026: CREATE
+# EDGE INDEX xong, sync_graph.py insert+LOOKUP gan nhu ngay lap tuc trong khi
+# graphd chua kip nhan metadata index qua heartbeat -> LOOKUP loi "SemanticError:
+# No valid index", _count_now() am tham roi xuong dung MATCH (da biet la cho so
+# sai/0 khi khong neo index) -> tuong nham la mat du lieu, tu xoa space that.
+WAIT_INDEX = int(os.environ.get("WAIT_INDEX", "10"))
 
 N_STEPS = 3
 
@@ -95,6 +101,9 @@ def main() -> None:
         with session() as s:
             for stmt in indexes:
                 execute(s, stmt + ";", "index")
+        if indexes:
+            progress.log(f"Cho {WAIT_INDEX}s de lan truyen index...")
+            time.sleep(WAIT_INDEX)
         st.metric(statements=len(indexes))
 
     progress.done(space=space, rebuilt=rebuild,

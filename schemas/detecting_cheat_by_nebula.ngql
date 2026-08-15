@@ -5,10 +5,17 @@
 -- Ten space lay tu bien moi truong SPACE (mac dinh `invoice_agg_graph`) — file nay
 -- chi la KHUON, load_schema.py se thay {{SPACE}} truoc khi chay.
 --
--- KHAC BIET SO VOI tax_graph: KHONG co Tag Person, KHONG co Edge LEGAL_REP_OF/OWNS
--- vi detecting_cheat_by_nebula khong he co du lieu nguoi dai dien phap luat / so huu von. Hau qua
--- truc tiep len diem so: mat 25 diem (lien ket ngam) + 15 diem (DN moi/bo tron)
--- => TRAN DIEM cua bo du lieu nay la 60/100, khong phai 100/100.
+-- [CAP NHAT 12/08/2026] Tag Person + Edge LEGAL_REP_OF da co (giong tax_graph) — nhung
+-- CHI datasource `trino_gotix` (domain `company` cua gotix-datalake co cot
+-- dai_dien_phap_luat, ty le dien ~98%) moi nap duoc du lieu that vao 2 loai nay, xem
+-- ingest_trino_gotix.py::fetch_legal_reps(). Cac bo raw/*.csv (csv86, hanoi_98cty...)
+-- VAN KHONG co nguon nay (company.csv chi 6-7 cot, khong co dai_dien_phap_luat) —
+-- voi cac bo do, 2 loai nay ton tai trong schema (validate_contract.py bao "missing"
+-- neu edge type khong ton tai, "empty" neu ton tai nhung 0 canh) nhung luon rong.
+-- KHONG co OWNS (so huu von) o bat ky nguon nao hien co — khong bia du lieu.
+-- Hau qua len diem so tuy tung datasource: neu KHONG co LEGAL_REP_OF/OWNS/SHARES_ADDRESS
+-- nao co du lieu -> mat 25 diem (lien ket ngam); neu khong co status/is_new_company
+-- -> mat them 15 diem (DN moi/bo tron). TRAN DIEM dao dong 60-100/100 tuy nguon.
 -- Xem full_invoice_86/KE_HOACH_TONG_THE_PIPELINE_LONG_VONG.md muc 4.2.
 
 CREATE SPACE IF NOT EXISTS {{SPACE}} (
@@ -24,7 +31,20 @@ CREATE TAG IF NOT EXISTS Company (
   sector      string,   -- linh vuc / nganh nghe
   address     string,   -- dia chi dang ky — nguon suy SHARES_ADDRESS
   revenue     double,   -- doanh thu bao cao
-  report_date string     -- giu string vi du lieu goc dang dd/mm/yyyy
+  report_date string,    -- giu string vi du lieu goc dang dd/mm/yyyy
+  status      string,   -- trang thai DKKD that (vd "Dang hoat dong"), NULL neu
+                          -- khong co du lieu — dung boi load_risky_companies()
+                          -- (detect_circular_trading.py) cho tin hieu "thanh vien
+                          -- rui ro" 15d. Bo sung 07/08/2026 cho bo 86_cty_full,
+                          -- KHONG anh huong space cu (CREATE TAG IF NOT EXISTS la
+                          -- no-op tren tag da ton tai — space cu van thieu cot nay).
+  established_date string  -- ngay hoat dong (YYYY-MM-DD), NULL neu khong co. Them
+                          -- 12/08/2026: chi trino_gotix co nguon that
+                          -- (company_header.ngay_hoat_dong, ~96% dien du). Dung boi
+                          -- load_risky_companies() de suy "doanh nghiep moi thanh
+                          -- lap" (nguong 12 thang truoc PERIOD_FROM, da chot voi
+                          -- Phuc) — KHONG dung field is_new_company rieng (khong co
+                          -- nguon boolean san, tinh thang tu ngay).
 );
 
 -- Canh giao dich GOP THEO KY. rank = period = yyyymm.
@@ -41,11 +61,25 @@ CREATE EDGE IF NOT EXISTS TRADES (
   last_date     string
 );
 
--- Lien ket ngam DUY NHAT suy duoc tu detecting_cheat_by_nebula (2 cong ty cung dia chi dang ky).
--- Tren bo 98 cong ty nay thuc te ra 0 canh — giu edge type de validate_contract.py
--- phan biet duoc "khong co cau truc" (missing) voi "co cau truc, khong co du lieu"
--- (empty). Hai truong hop nay can hanh dong khac nhau.
+-- Lien ket ngam suy tu dia chi dang ky trung nhau — co o moi datasource (ca CSV
+-- lan trino_gotix). Voi bo raw/*.csv thuc te thuong ra 0 canh — giu edge type de
+-- validate_contract.py phan biet duoc "khong co cau truc" (missing) voi "co cau
+-- truc, khong co du lieu" (empty). Hai truong hop nay can hanh dong khac nhau.
 CREATE EDGE IF NOT EXISTS SHARES_ADDRESS (norm_addr string);
+
+-- Nguoi dai dien phap luat — CHI trino_gotix nap duoc (xem ghi chu dau file).
+-- VID cua Person = sha256(ten_da_chuan_hoa)[:16] (khop vid_type FIXED_STRING(16)
+-- cua space nay), KHONG dung ten that lam VID vi ten tieng Viet co dau vuot qua
+-- 16 byte rat de. Ten that luu o thuoc tinh `name`.
+CREATE TAG IF NOT EXISTS Person (name string);
+CREATE EDGE IF NOT EXISTS LEGAL_REP_OF ();  -- Person -> Company, khong co thuoc tinh
+
+-- Chung so dien thoai tru so — CHI trino_gotix (company_header.dien_thoai_tru_so).
+-- LUU Y: DDL nguon tu ghi ro cot nay "raw, KHONG dung cho Nebula, KHONG clean" —
+-- Phuc da xac nhan 12/08/2026 van muon lay du vay. Da chuan hoa THAN TRONG o
+-- Python (tach theo `/`/`-`, chi giu ung vien 10-11 chu so bat dau bang "0") vi du
+-- lieu that lan lon nhieu so/cat cut trong 1 o — xem fetch_shares_phone().
+CREATE EDGE IF NOT EXISTS SHARES_PHONE (norm_phone string);
 
 CREATE EDGE INDEX IF NOT EXISTS idx_trades_period ON TRADES(period);
 

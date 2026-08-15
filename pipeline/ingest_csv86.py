@@ -155,6 +155,9 @@ def normalize_address(addr: str) -> str:
 # --------------------------------------------------------------------------
 
 def read_companies() -> list[list[str]]:
+    """Cot 7 (`trang_thai`) la TUY CHON — bo du lieu cu (6 cot, vd hanoi_98cty) van
+    doc duoc, tu dong coi nhu khong biet trang thai (rong, KHONG suy dien "active").
+    Bo du lieu nao co du lieu DKKD that (vd 86_cty_full) moi truyen du 7 cot."""
     if not COMPANY_CSV.exists():
         raise FileNotFoundError(f"Khong thay file cong ty: {COMPANY_CSV}")
     rows = []
@@ -164,26 +167,28 @@ def read_companies() -> list[list[str]]:
                 continue
             if len(row) < 6:
                 raise ValueError(
-                    f"{COMPANY_CSV.name} dong {i}: can 6 cot "
+                    f"{COMPANY_CSV.name} dong {i}: can toi thieu 6 cot "
                     f"(mst,ten,linh_vuc,dia_chi,doanh_thu,nam_bao_cao), thay {len(row)}"
                 )
-            rows.append(row[:6])
+            trang_thai = row[6] if len(row) >= 7 else ""
+            rows.append(row[:6] + [trang_thai])
     if not rows:
         raise ValueError(f"{COMPANY_CSV.name} rong")
     return rows
 
 
 def write_companies(rows: list[list[str]]) -> int:
-    """Sao chep + doi ten cot cho khop schema. KHONG bia them status /
-    established_date — du lieu goc khong co, de trong that hon suy dien gia
-    (xem muc 4.2 Data Contract: thieu 2 truong nay = mat 15 diem)."""
+    """Sao chep + doi ten cot cho khop schema. `status` de RONG (khong phai chuoi
+    "active") khi khong biet — RONG = khong tinh vao tin hieu "thanh vien rui ro",
+    khac voi mot gia tri that (vd "Tam ngung kinh doanh") = TINH vao tin hieu do.
+    Xem muc 4.2 Data Contract: truoc day luon de trong vi khong co du lieu that."""
     out = DATA_DIR / "companies.csv"
     with open(out, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
-        w.writerow(["mst", "name", "sector", "address", "revenue", "report_date"])
-        for mst, name, sector, address, revenue, report_date in rows:
+        w.writerow(["mst", "name", "sector", "address", "revenue", "report_date", "status"])
+        for mst, name, sector, address, revenue, report_date, status in rows:
             w.writerow([mst.strip(), name.strip(), sector.strip(), address.strip(),
-                        (revenue.strip() or "0"), report_date.strip()])
+                        (revenue.strip() or "0"), report_date.strip(), status.strip()])
     return len(rows)
 
 

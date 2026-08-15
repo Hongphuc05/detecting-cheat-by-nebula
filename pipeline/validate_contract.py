@@ -71,7 +71,33 @@ def _props(s, kind: str, name: str) -> dict[str, str]:
     return out
 
 
-def _count(s, pattern: str) -> int:
+def _indexed_edges(s) -> dict[str, str]:
+    """edge_type -> ten index, cho moi edge co it nhat 1 index gan vao."""
+    resp = s.execute("SHOW EDGE INDEXES;")
+    if not resp.is_succeeded():
+        return {}
+    out: dict[str, str] = {}
+    for i in range(resp.row_size()):
+        row = resp.row_values(i)
+        out.setdefault(row[1].as_string(), row[0].as_string())
+    return out
+
+
+def _count(s, pattern: str, edge_type: str | None = None, ctx: dict | None = None) -> int:
+    """Dem so dong khop pattern.
+
+    BUG THAT DA KIEM CHUNG (05/08/2026, NebulaGraph v3.8.0 standalone): `MATCH`
+    KHONG NEO tren 1 edge type DA CO index tra ve SAI (0 dong) du du lieu that co
+    that (kiem chung bang LOOKUP + FETCH PROP deu thay dung du lieu). `MATCH`
+    khong neo tren edge KHONG co index (vd SHARES_ADDRESS) van dung. Vi vay: edge
+    nao co index thi dem bang LOOKUP (dung cung co che voi detect_circular_trading.py
+    da dung an toan), edge khong index moi dung MATCH nhu cu."""
+    indexed = (ctx or {}).get("indexed_edges", {}) if edge_type else {}
+    if edge_type and edge_type in indexed:
+        resp = s.execute(f"LOOKUP ON {edge_type} YIELD id(edge) AS id;")
+        if resp.is_succeeded():
+            return resp.row_size()
+        # LOOKUP loi vi ly do khac (vd index chua kip xay) -> lui ve MATCH ben duoi
     resp = s.execute(f"MATCH {pattern} RETURN count(*) AS c;")
     if not resp.is_succeeded() or resp.row_size() == 0:
         return 0
@@ -96,7 +122,7 @@ def probe_edge_trades(s, ctx) -> tuple[str, str, dict]:
     lack = [p for p in need if p not in props]
     if lack:
         return "missing", f"Edge TRADES thiếu thuộc tính: {', '.join(lack)}", {"missing_props": lack}
-    n = _count(s, "()-[e:TRADES]->()")
+    n = _count(s, "()-[e:TRADES]->()", edge_type="TRADES", ctx=ctx)
     ctx["n_trades"] = n
     if n == 0:
         return "empty", "Có Edge TRADES nhưng chưa nạp cạnh nào", {"count": 0}
@@ -105,11 +131,21 @@ def probe_edge_trades(s, ctx) -> tuple[str, str, dict]:
 
 def probe_rank_period(s, ctx) -> tuple[str, str, dict]:
     """rank(e) PHAI bang e.period. Toan bo buoc loc theo ky trong nGQL dua vao
-    rank de khong phai doc thuoc tinh — lech la loc sai ky ma khong bao loi."""
+    rank de khong phai doc thuoc tinh — lech la loc sai ky ma khong bao loi.
+
+    Dung LOOKUP thay vi MATCH khong neo khi TRADES co index — cung ly do da sua
+    o _count() (xem docstring _count): MATCH khong neo tren edge co index tra ve
+    SAI tren ban Nebula nay du du lieu that co, da kiem chung 05/08/2026."""
     if ctx.get("n_trades", 0) == 0:
         return "skipped", "Chưa có cạnh TRADES để kiểm tra", {}
-    resp = s.execute(
-        "MATCH ()-[e:TRADES]->() RETURN rank(e) AS r, e.period AS p LIMIT 500;")
+
+    use_lookup = "TRADES" in ctx.get("indexed_edges", {})
+    if use_lookup:
+        resp = s.execute(
+            "LOOKUP ON TRADES YIELD rank(edge) AS r, properties(edge).period AS p | LIMIT 500;")
+    else:
+        resp = s.execute(
+            "MATCH ()-[e:TRADES]->() RETURN rank(e) AS r, e.period AS p LIMIT 500;")
     if not resp.is_succeeded():
         return "missing", f"Không đọc được rank: {resp.error_msg()}", {}
     bad = sum(1 for i in range(resp.row_size())
@@ -121,10 +157,19 @@ def probe_rank_period(s, ctx) -> tuple[str, str, dict]:
     # mau chi cham vao 1 phan du lieu nen se bao thieu ky dau/cuoi, va giao dien
     # dung con so nay de dien san o nhap "ky tu - ky den" -> nguoi dung se quet
     # thieu ky ma khong biet.
-    agg = s.execute("MATCH ()-[e:TRADES]->() RETURN min(e.period) AS a, max(e.period) AS b;")
-    if agg.is_succeeded() and agg.row_size():
-        row = agg.row_values(0)
-        ctx["period_from"], ctx["period_to"] = row[0].as_int(), row[1].as_int()
+    if use_lookup:
+        # LOOKUP khong cho aggregate (min/max) trong YIELD — keo het period ve
+        # tinh min/max o Python. Chap nhan duoc o quy mo vai nghin-vai chuc nghin
+        # canh; can xem lai neu bo du lieu that lon hon nhieu.
+        agg = s.execute("LOOKUP ON TRADES YIELD properties(edge).period AS p;")
+        if agg.is_succeeded() and agg.row_size():
+            periods = [agg.row_values(i)[0].as_int() for i in range(agg.row_size())]
+            ctx["period_from"], ctx["period_to"] = min(periods), max(periods)
+    else:
+        agg = s.execute("MATCH ()-[e:TRADES]->() RETURN min(e.period) AS a, max(e.period) AS b;")
+        if agg.is_succeeded() and agg.row_size():
+            row = agg.row_values(0)
+            ctx["period_from"], ctx["period_to"] = row[0].as_int(), row[1].as_int()
     return "pass", (f"khớp trên {resp.row_size()} cạnh mẫu · kỳ "
                     f"{ctx.get('period_from', '?')}-{ctx.get('period_to', '?')}"), {
         "sampled": resp.row_size(),
@@ -144,18 +189,39 @@ def probe_index(s, ctx) -> tuple[str, str, dict]:
 
 
 def probe_legal_rep(s, ctx) -> tuple[str, str, dict]:
+    """SUA 12/08/2026: "co canh LEGAL_REP_OF" KHONG DAM BAO co cap cong ty chung
+    nguoi dai dien — LEGAL_REP_OF la quan he 1 NGUOI -> NHIEU cong ty (khac
+    SHARES_ADDRESS/SHARES_PHONE, canh chi duoc tao ra KHI DA co 2 cong ty trung
+    nhau). Ban cu chi dem so canh (>0 la "pass"), nen tung bao sai "du diem" du
+    9 nguoi dai dien la 9 nguoi KHAC NHAU hoan toan (0 cap thuc, diem thuc chi
+    75/100) — dem that: xem detecting_cheat_by_nebula/output/DOI_CHIEU... hoac
+    chay lai tren space "test" 12/08/2026. Sua: kiem tra DUNG dieu kien ma
+    load_hidden_link_pairs() (detect_circular_trading.py) can — it nhat 1 nguoi
+    dung ten cho >= 2 cong ty — dung LAI DUNG cau nGQL da kiem chung o do, khong
+    viet lai logic khac o 2 noi."""
     if "LEGAL_REP_OF" not in ctx["edges"]:
         return "missing", "Không có dữ liệu người đại diện pháp luật (ĐKKD)", {}
-    n = _count(s, "()-[e:LEGAL_REP_OF]->()")
-    if n == 0:
+    n_edges = _count(s, "()-[e:LEGAL_REP_OF]->()", edge_type="LEGAL_REP_OF", ctx=ctx)
+    if n_edges == 0:
         return "empty", "Có Edge LEGAL_REP_OF nhưng 0 cạnh", {"count": 0}
-    return "pass", f"{n:,} cạnh".replace(",", "."), {"count": n}
+    resp = s.execute(
+        "MATCH (a:Company)<-[:LEGAL_REP_OF]-(p)-[:LEGAL_REP_OF]->(b:Company) "
+        "WHERE id(a) < id(b) RETURN count(*) AS n;"
+    )
+    n_pairs = resp.row_values(0)[0].as_int() if resp.is_succeeded() and resp.row_size() else 0
+    if n_pairs == 0:
+        return ("empty",
+                f"Có {n_edges:,} cạnh LEGAL_REP_OF nhưng không công ty nào chung người "
+                f"đại diện (mỗi người chỉ đứng tên 1 công ty)".replace(",", "."),
+                {"count": 0, "edges": n_edges})
+    return ("pass", f"{n_pairs:,} cặp công ty chung người đại diện".replace(",", "."),
+            {"count": n_pairs, "edges": n_edges})
 
 
 def probe_owns(s, ctx) -> tuple[str, str, dict]:
     if "OWNS" not in ctx["edges"]:
         return "missing", "Không có dữ liệu sở hữu vốn (ĐKKD)", {}
-    n = _count(s, "()-[e:OWNS]->()")
+    n = _count(s, "()-[e:OWNS]->()", edge_type="OWNS", ctx=ctx)
     if n == 0:
         return "empty", "Có Edge OWNS nhưng 0 cạnh", {"count": 0}
     return "pass", f"{n:,} cạnh".replace(",", "."), {"count": n}
@@ -164,9 +230,20 @@ def probe_owns(s, ctx) -> tuple[str, str, dict]:
 def probe_shares_address(s, ctx) -> tuple[str, str, dict]:
     if "SHARES_ADDRESS" not in ctx["edges"]:
         return "missing", "Không có cạnh địa chỉ chung", {}
-    n = _count(s, "()-[e:SHARES_ADDRESS]->()")
+    n = _count(s, "()-[e:SHARES_ADDRESS]->()", edge_type="SHARES_ADDRESS", ctx=ctx)
     if n == 0:
         return "empty", "Có Edge SHARES_ADDRESS nhưng 0 cạnh — không cặp doanh nghiệp nào trùng địa chỉ đăng ký", {"count": 0}
+    return "pass", f"{n:,} cạnh".replace(",", "."), {"count": n}
+
+
+def probe_shares_phone(s, ctx) -> tuple[str, str, dict]:
+    """Them 12/08/2026 — CHI trino_gotix co nguon (company_header.dien_thoai_tru_so),
+    xem ingest_trino_gotix.py::fetch_shares_phone()."""
+    if "SHARES_PHONE" not in ctx["edges"]:
+        return "missing", "Không có cạnh số điện thoại chung", {}
+    n = _count(s, "()-[e:SHARES_PHONE]->()", edge_type="SHARES_PHONE", ctx=ctx)
+    if n == 0:
+        return "empty", "Có Edge SHARES_PHONE nhưng 0 cạnh — không cặp doanh nghiệp nào trùng số điện thoại trụ sở", {"count": 0}
     return "pass", f"{n:,} cạnh".replace(",", "."), {"count": n}
 
 
@@ -200,15 +277,17 @@ CHECKS: dict = {
     "4.2.legal_rep":       ("ĐKKD — người đại diện pháp luật",           probe_legal_rep),
     "4.2.owns":            ("ĐKKD — sở hữu vốn",                         probe_owns),
     "4.2.shares_address":  ("Địa chỉ đăng ký trùng nhau",                probe_shares_address),
+    "4.2.shares_phone":    ("Số điện thoại trụ sở trùng nhau",           probe_shares_phone),
     "4.2.status_date":     ("ĐKKD — ngày thành lập / trạng thái",        probe_status_date),
     "4.3.price":           ("[Lớp 3] Đơn giá / mã ngành",                probe_price),
 }
 
 # Nhom tin hieu -> diem. `any_of`: chi can 1 nguon `pass` la du diem cua nhom do
-# (dung voi cach cham: score_hidden_link la nhi phan, 1 trong 3 khop la du 25d).
+# (dung voi cach cham: score_hidden_link la nhi phan, 1 trong 4 khop la du 25d).
 SIGNAL_GROUPS = [
     {"id": "hidden_link", "label": "liên kết ngầm",
-     "points": W_HIDDEN, "any_of": ["4.2.legal_rep", "4.2.owns", "4.2.shares_address"]},
+     "points": W_HIDDEN,
+     "any_of": ["4.2.legal_rep", "4.2.owns", "4.2.shares_address", "4.2.shares_phone"]},
     {"id": "risky_member", "label": "thành viên rủi ro",
      "points": W_RISKY, "any_of": ["4.2.status_date"]},
 ]
@@ -238,6 +317,7 @@ def main() -> None:
     with session() as s:
         ctx["tags"] = _show(s, "TAGS")
         ctx["edges"] = _show(s, "EDGES")
+        ctx["indexed_edges"] = _indexed_edges(s)
 
         for cid, (label, probe) in CHECKS.items():
             if cid not in wanted:
