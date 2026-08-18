@@ -19,12 +19,17 @@ NGUON TRINO (da xac nhan DDL + SQL that qua thuc nghiem 05/08/2026):
     khi mst khong co trong company_header
   - nessie.tier2.tax_declaration_bctc_item_value     -> companies.csv (revenue, item_code=Ct10 —
     domain company KHONG co cot doanh thu, van phai lay tu BCTC)
+  - nessie.tier3.tax_declaration_gtgt_tndn_t2_feature_value  -> companies.csv (book_tax_gap, N4
+    18/08/2026) — CHI 1/350 mst co gia tri thuc te (domain tax_declaration/GTGT chua bootstrap
+    nhieu trong sandbox nay), GIU NULL cho phan con lai, KHONG suy dien.
+  - nessie.tier3.einvoice_invoice_risk_feature_value  -> companies.csv (invoice_adjustment_rate,
+    invoice_benford_chi2, N4 18/08/2026) — 13/350 mst co gia tri thuc te.
   ⚠️ SQL_SHARES_ADDRESS CHUA TEST duoc tren du lieu that — domain tax_declaration chua duoc
   bootstrap trong sandbox nay luc viet script goc (chi moi bootstrap einvoice). Kiem tra lai
-  khi tax_declaration co du lieu that. SQL_COMPANIES (ban sua 12/08/2026) da doi nguon chinh
-  sang company_header/company_industry — domain nay DA co du lieu that (~350k cong ty), nhung
-  ban SQL merge nay van CHUA duoc chay thuc te tren Trino, can chay 1 lan de xac nhan truoc khi
-  coi la "da hoat dong".
+  khi tax_declaration co du lieu that. SQL_COMPANIES (ban sua 12/08, kiem chung that 18/08/2026)
+  da doi nguon chinh sang company_header/company_industry — domain nay DA co du lieu that
+  (~350k cong ty), da chay thuc te tren Trino va doi chieu dung voi
+  SELECT ... FROM company_industry (xem N4/N4_PHAN_TICH_YEU_CAU.md muc "Buoc 1").
 
 QUYET DINH DA CHOT VOI PHUC (05/08/2026, sua 12/08/2026):
   - sector: lay tu company_industry.ten_nganh (uu tien nganh_chinh=true) — domain company da
@@ -211,6 +216,31 @@ latest_sector AS (
     FROM company_industry
     WHERE mst IS NOT NULL AND ten_nganh IS NOT NULL
   ) WHERE rn = 1
+),
+-- 3 cot rui ro (N4, 18/08/2026) — doc TIER3 (bang feature dai han da tinh san,
+-- KHONG tinh lai cong thuc o day). Lay nam moi nhat/mst, giu NULL khi khong co
+-- (domain tax_declaration/einvoice cang bootstrap them du lieu thi 2 CTE nay tu
+-- phu rong hon, khong can sua code lan sau — xem N4/N4_PHAN_TICH_YEU_CAU.md muc 3).
+latest_tax_risk AS (
+  SELECT mst, feature_value_num AS book_tax_gap
+  FROM (
+    SELECT mst, feature_value_num,
+           ROW_NUMBER() OVER (PARTITION BY mst ORDER BY fiscal_year DESC) AS rn
+    FROM tier3.tax_declaration_gtgt_tndn_t2_feature_value
+    WHERE feature_name = 'TTHN-T2-D08-002'
+  ) WHERE rn = 1
+),
+latest_invoice_risk AS (
+  SELECT mst,
+         MAX(CASE WHEN feature_name = 'TTHN-T2-D07-001' THEN feature_value_num END) AS invoice_adjustment_rate,
+         MAX(CASE WHEN feature_name = 'TTHN-T2-D07-002' THEN feature_value_num END) AS invoice_benford_chi2
+  FROM (
+    SELECT mst, feature_name, feature_value_num,
+           ROW_NUMBER() OVER (PARTITION BY mst, feature_name ORDER BY fiscal_year DESC) AS rn
+    FROM tier3.einvoice_invoice_risk_feature_value
+    WHERE feature_name IN ('TTHN-T2-D07-001', 'TTHN-T2-D07-002')
+  ) WHERE rn = 1
+  GROUP BY mst
 )
 SELECT
   COALESCE(c.mst, f.mst)                AS mst,
@@ -220,11 +250,16 @@ SELECT
   r.revenue                              AS revenue,
   f.ictrl_dt                             AS report_date,
   c.trang_thai                           AS status,
-  c.ngay_hoat_dong                       AS established_date
+  c.ngay_hoat_dong                       AS established_date,
+  tr.book_tax_gap                        AS book_tax_gap,
+  ir.invoice_adjustment_rate             AS invoice_adjustment_rate,
+  ir.invoice_benford_chi2                AS invoice_benford_chi2
 FROM latest_company c
 FULL OUTER JOIN latest_filing f ON f.mst = c.mst
 LEFT JOIN latest_revenue r ON r.mst = COALESCE(c.mst, f.mst)
 LEFT JOIN latest_sector s ON s.mst = COALESCE(c.mst, f.mst)
+LEFT JOIN latest_tax_risk tr ON tr.mst = COALESCE(c.mst, f.mst)
+LEFT JOIN latest_invoice_risk ir ON ir.mst = COALESCE(c.mst, f.mst)
 WHERE COALESCE(c.mst, f.mst) IN (SELECT mst FROM transacting_mst)
 """
 
@@ -326,21 +361,29 @@ def fetch_companies(conn) -> int:
     n = 0
     with open(out, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
-        # 8 cot — 7 cot khop schema companies.csv cua ingest_csv86.py (mst,name,sector,
-        # address,revenue,report_date,status) + "established_date" rieng cho nguon nay
-        # (ingest_csv86.py khong co cot nay, sync_companies() tu kiem tra co/khong).
+        # 11 cot — 7 cot khop schema companies.csv cua ingest_csv86.py (mst,name,sector,
+        # address,revenue,report_date,status) + "established_date" + 3 cot rui ro (N4,
+        # 18/08/2026) rieng cho nguon nay (ingest_csv86.py khong co cac cot nay,
+        # sync_companies() tu kiem tra co/khong qua DictReader.get()).
         # "status" = trang_thai DKKD that; "established_date" = ngay_hoat_dong that —
         # dung boi load_risky_companies() (detect_circular_trading.py) cho tin hieu
         # "thanh vien rui ro" (status rui ro HOAC moi thanh lap <12 thang truoc ky).
+        # 3 cot rui ro: GIU RONG (khong suy dien = 0) khi khong co du lieu tier3 —
+        # dung triet ly voi sector "Chua ro", xem N4_PHAN_TICH_YEU_CAU.md muc 3/4.
         w.writerow(["mst", "name", "sector", "address", "revenue", "report_date", "status",
-                    "established_date"])
+                    "established_date", "book_tax_gap", "invoice_adjustment_rate",
+                    "invoice_benford_chi2"])
         for (mst, name, sector, address, revenue, report_date, status,
-             established_date) in _stream_rows(cur, SQL_COMPANIES):
+             established_date, book_tax_gap, invoice_adjustment_rate,
+             invoice_benford_chi2) in _stream_rows(cur, SQL_COMPANIES):
             w.writerow([
                 mst, (name or "").strip(), (sector or "Chưa rõ").strip(),
                 (address or "").strip(), (revenue if revenue is not None else 0),
                 report_date, (status or "").strip(),
                 established_date if established_date else "",
+                book_tax_gap if book_tax_gap is not None else "",
+                invoice_adjustment_rate if invoice_adjustment_rate is not None else "",
+                invoice_benford_chi2 if invoice_benford_chi2 is not None else "",
             ])
             n += 1
     return n

@@ -18,6 +18,21 @@ thật với gotix), thêm phụ thuộc **`trino`** (Python client, chỉ scrip
 `requirements.txt`** — cần Phúc xác nhận cách cài đặt môi trường thực tế
 (`pip install nebula3-python trino` thủ công? — đúng lệnh đang dùng trong `nebula_demo/Dockerfile`).
 
+## Git workflow (chốt với Phúc 18/08/2026, cùng lúc quyết định N4)
+
+Repo GitHub `Hongphuc05/detecting-cheat-by-nebula`, nhánh chính `main`. **Khác với
+`gotix-datalake`** (repo đó bắt buộc tạo nhánh riêng + Merge Request, tuyệt đối không đụng
+`main` mà không hỏi trước) — repo này **sửa/commit/push thẳng vào `main`**, không tạo nhánh
+riêng, không cần Merge Request/PR cho mỗi task. Lý do: quy mô nhỏ, ít người sửa, không có luồng
+review qua GitLab như `gotix-datalake`. Rule "NEVER touch main" trong `gotix-datalake/CLAUDE.md`
+chỉ áp dụng cho repo đó, không áp dụng ở đây.
+
+Lưu ý riêng: repo này đang ở chế độ **public** trên GitHub và còn dữ liệu thật (98 công ty Hà
+Nội — MST/tên/địa chỉ/doanh thu) trong lịch sử git — chưa chốt xong việc này có ổn hay cần xử lý
+(xem root `Bigdata/CLAUDE.md` mục C.4). Push code/doc bình thường vẫn làm thẳng `main` như trên;
+việc riêng "public + dữ liệu thật" là 1 quyết định khác, chưa liên quan tới quy trình git thường
+ngày.
+
 ## Cấu trúc thư mục quan trọng
 
 ```

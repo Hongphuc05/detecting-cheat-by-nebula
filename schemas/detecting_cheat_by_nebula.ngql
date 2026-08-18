@@ -38,13 +38,27 @@ CREATE TAG IF NOT EXISTS Company (
                           -- rui ro" 15d. Bo sung 07/08/2026 cho bo 86_cty_full,
                           -- KHONG anh huong space cu (CREATE TAG IF NOT EXISTS la
                           -- no-op tren tag da ton tai — space cu van thieu cot nay).
-  established_date string  -- ngay hoat dong (YYYY-MM-DD), NULL neu khong co. Them
+  established_date string, -- ngay hoat dong (YYYY-MM-DD), NULL neu khong co. Them
                           -- 12/08/2026: chi trino_gotix co nguon that
                           -- (company_header.ngay_hoat_dong, ~96% dien du). Dung boi
                           -- load_risky_companies() de suy "doanh nghiep moi thanh
                           -- lap" (nguong 12 thang truoc PERIOD_FROM, da chot voi
                           -- Phuc) — KHONG dung field is_new_company rieng (khong co
                           -- nguon boolean san, tinh thang tu ngay).
+  book_tax_gap double,    -- N4 18/08/2026: tier3.tax_declaration_gtgt_tndn_t2_feature_value,
+                          -- formula_id TTHN-T2-D08-002 (thu nhap tinh thue - loi nhuan ke
+                          -- toan, VND). NULL neu khong co (hien ~1/350 mst co gia tri —
+                          -- domain tax_declaration/GTGT chua bootstrap nhieu). CHI HIEN THI,
+                          -- KHONG tinh vao diem cham data contract (xem
+                          -- N4/N4_PHAN_TICH_YEU_CAU.md muc 3 ly do khong tinh diem).
+  invoice_adjustment_rate double, -- N4 18/08/2026: tier3.einvoice_invoice_risk_feature_value,
+                          -- formula_id TTHN-T2-D07-001 (ty le hoa don bi dieu chinh/huy tren
+                          -- tong hoa don ban). NULL neu khong co (hien ~13/350 mst). CHI
+                          -- HIEN THI, khong tinh diem (giong book_tax_gap).
+  invoice_benford_chi2 double -- N4 18/08/2026: tier3.einvoice_invoice_risk_feature_value,
+                          -- formula_id TTHN-T2-D07-002 (do lech Benford tren chu so dau hoa
+                          -- don, can >=100 hoa don/mst moi tinh). NULL neu khong co. CHI
+                          -- HIEN THI, khong tinh diem (giong book_tax_gap).
 );
 
 -- Canh giao dich GOP THEO KY. rank = period = yyyymm.

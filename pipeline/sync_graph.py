@@ -141,6 +141,10 @@ def sync_companies(s) -> int:
     if not path.exists():
         return 0
 
+    def _num_or_null(raw: str) -> str:
+        raw = raw.strip()
+        return raw if raw else "NULL"
+
     def values():
         for r in _iter_rows(path):
             # status/established_date RONG (khong biet) -> NULL that su trong nGQL,
@@ -150,15 +154,22 @@ def sync_companies(s) -> int:
             status_lit = f'"{esc(status)}"' if status else "NULL"
             established = r.get("established_date", "").strip()
             established_lit = f'"{esc(established)}"' if established else "NULL"
+            # 3 cot rui ro (N4, 18/08/2026) — chi co tren nguon trino_gotix, RONG voi
+            # nguon ingest_csv86.py (r.get tra "" -> NULL, khong bia gia tri 0).
+            book_tax_gap_lit = _num_or_null(r.get("book_tax_gap", ""))
+            adj_rate_lit = _num_or_null(r.get("invoice_adjustment_rate", ""))
+            benford_lit = _num_or_null(r.get("invoice_benford_chi2", ""))
             yield (
                 f'"{r["mst"]}":("{esc(r["name"])}", "{esc(r["sector"])}", '
                 f'"{esc(r["address"])}", {float(r["revenue"] or 0)}, '
-                f'"{esc(r["report_date"])}", {status_lit}, {established_lit})'
+                f'"{esc(r["report_date"])}", {status_lit}, {established_lit}, '
+                f'{book_tax_gap_lit}, {adj_rate_lit}, {benford_lit})'
             )
 
     return insert_batched_stream(
         s, "INSERT VERTEX Company(name, sector, address, revenue, report_date, "
-           "status, established_date)",
+           "status, established_date, book_tax_gap, invoice_adjustment_rate, "
+           "invoice_benford_chi2)",
         values(), "companies")
 
 
